@@ -1,0 +1,50 @@
+# Node dependencies
+node_modules/
+
+# Build output
+build/
+dist/
+.out/
+.next/
+.temp/
+.cache/
+
+# System/OS files
+.DS_Store
+Thumbs.db
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Log files
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Editor directories and files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Testing
+coverage/
+test-output/
+jest-html-reporters-*.html
+
+# Misc
+*.swp
+*.swo
+*.bak
+*.tgz
+
+# TypeScript
+*.tsbuildinfo
+
+# Optional - Ignore lockfile if not using it
+# yarn.lock
+# package-lock.json
+# pnpm-lock.yaml
