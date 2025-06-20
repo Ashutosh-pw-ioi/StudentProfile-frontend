@@ -2,6 +2,7 @@
 import { useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import axios from "axios";
 
 interface LoginPageProps {
   role: "student" | "admin" | "teacher";
@@ -12,21 +13,37 @@ interface LoginPageProps {
   focusColor?: string;
 }
 
+interface LoginResponse {
+  token: string;
+  user: {
+    id: string;
+    email: string;
+    role: string;
+  };
+}
+
+interface ApiError {
+  message: string;
+}
+
 const roleConfig = {
   student: {
     title: "Student Portal",
     subtitle: "Access your student dashboard",
     emailPlaceholder: "Enter your student email",
+    apiRole: "STUDENT",
   },
   admin: {
     title: "Admin Portal",
     subtitle: "Welcome back to your admin panel",
     emailPlaceholder: "Enter your admin email",
+    apiRole: "ADMIN",
   },
   teacher: {
     title: "Teacher Portal",
     subtitle: "Welcome back to your teacher panel",
     emailPlaceholder: "Enter your teacher email",
+    apiRole: "TEACHER",
   },
 };
 
@@ -47,23 +64,82 @@ export default function LoginPage({
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    setIsLoading(true);
-    try {
-      await new Promise((r) => setTimeout(r, 1500));
+    if (!email.trim() || !password.trim()) {
+      toast.error("Please fill in all fields.");
+      return;
+    }
 
-      if (email === "blocked@test.com") {
-        toast.error("Your account has been suspended. Please contact support.");
-      } else if (email === "unverified@test.com") {
-        toast.warn("Please verify your email address to continue.");
-      } else if (email === "notfound@test.com") {
-        toast.error("No account found with this email address.");
-      } else if (Math.random() > 0.7) {
-        toast.error("Email or password is incorrect.");
+    setIsLoading(true);
+
+    try {
+      const response = await axios.post<LoginResponse>(
+        "http://localhost:8000/api/auth/login",
+        {
+          email: email.trim(),
+          password: password.trim(),
+          role: config.apiRole,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+          timeout: 10000,
+        }
+      );
+
+      const { token, user } = response.data;
+
+      localStorage.setItem("authToken", token);
+      localStorage.setItem("user", JSON.stringify(user));
+
+      toast.success(
+        `Welcome back, ${user.email}! Redirecting to ${role} dashboard...`
+      );
+
+      setTimeout(() => {
+        window.location.href = `/${role}/dashboard`;
+      }, 2000);
+    } catch (error) {
+      console.error("Login error:", error);
+
+      if (axios.isAxiosError(error)) {
+        if (error.response) {
+          const apiError = error.response.data as ApiError;
+          const statusCode = error.response.status;
+
+          switch (statusCode) {
+            case 400:
+              toast.error(
+                apiError.message || "Invalid request. Please check your input."
+              );
+              break;
+            case 401:
+              toast.error("Invalid email or password. Please try again.");
+              break;
+            case 403:
+              toast.error("Access denied. Please contact support.");
+              break;
+            case 404:
+              toast.error("Service not found. Please try again later.");
+              break;
+            case 500:
+              toast.error("Server error. Please try again later.");
+              break;
+            default:
+              toast.error(
+                apiError.message || "Login failed. Please try again."
+              );
+          }
+        } else if (error.request) {
+          toast.error(
+            "Unable to connect to server. Please check your internet connection."
+          );
+        } else {
+          toast.error("An unexpected error occurred. Please try again.");
+        }
       } else {
-        toast.success(`Welcome back! Redirecting to ${role} dashboard...`);
+        toast.error("An unexpected error occurred. Please try again.");
       }
-    } catch {
-      toast.error("Unable to connect to server. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -74,7 +150,17 @@ export default function LoginPage({
       className="min-h-screen flex items-center justify-center p-4"
       style={{ backgroundColor: bgColor }}
     >
-      <ToastContainer />
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
       <div className="flex max-w-4xl w-full bg-white rounded-2xl shadow-xl overflow-hidden">
         <div className="w-full md:w-[45%] p-8 lg:p-12 flex flex-col justify-center">
           <div className="mb-8">
@@ -104,6 +190,7 @@ export default function LoginPage({
                   (e.target.style.boxShadow = `0 0 0 2px ${primaryColor}`)
                 }
                 onBlur={(e) => (e.target.style.boxShadow = "none")}
+                disabled={isLoading}
               />
             </div>
 
@@ -122,6 +209,7 @@ export default function LoginPage({
                   (e.target.style.boxShadow = `0 0 0 2px ${primaryColor}`)
                 }
                 onBlur={(e) => (e.target.style.boxShadow = "none")}
+                disabled={isLoading}
               />
             </div>
 
@@ -137,9 +225,11 @@ export default function LoginPage({
                 } as React.CSSProperties
               }
               onMouseEnter={(e) =>
+                !isLoading &&
                 (e.currentTarget.style.backgroundColor = hoverColor)
               }
               onMouseLeave={(e) =>
+                !isLoading &&
                 (e.currentTarget.style.backgroundColor = primaryColor)
               }
             >
