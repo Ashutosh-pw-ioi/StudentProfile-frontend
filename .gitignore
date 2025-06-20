@@ -1,50 +1,41 @@
-# Node dependencies
-node_modules/
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# Build output
-build/
-dist/
-.out/
-.next/
-.temp/
-.cache/
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
 
-# System/OS files
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
 .DS_Store
-Thumbs.db
+*.pem
 
-# Environment variables
-.env
-.env.local
-.env.*.local
-
-# Log files
+# debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
+.pnpm-debug.log*
 
-# Editor directories and files
-.vscode/
-.idea/
-*.sublime-project
-*.sublime-workspace
+# env files (can opt-in for committing if needed)
+.env*
 
-# Testing
-coverage/
-test-output/
-jest-html-reporters-*.html
+# vercel
+.vercel
 
-# Misc
-*.swp
-*.swo
-*.bak
-*.tgz
-
-# TypeScript
+# typescript
 *.tsbuildinfo
-
-# Optional - Ignore lockfile if not using it
-# yarn.lock
-# package-lock.json
-# pnpm-lock.yaml
+next-env.d.ts
