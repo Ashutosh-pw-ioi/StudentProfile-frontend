@@ -3,6 +3,7 @@ import { useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
+import router from "next/router";
 
 interface LoginPageProps {
   role: "student" | "admin" | "teacher";
@@ -97,7 +98,7 @@ export default function LoginPage({
       );
 
       setTimeout(() => {
-        window.location.href = `/${role}/dashboard`;
+        router.push(`/dashboard/${role}`);
       }, 2000);
     } catch (error) {
       console.error("Login error:", error);
