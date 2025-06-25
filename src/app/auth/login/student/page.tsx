@@ -1,4 +1,4 @@
-import LoginPage from "../loginPage";
+import LoginPage from "../../../loginPage";
 
 export const metadata = {
   title: "Student Login",
