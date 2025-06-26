@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from "react";
-import { ChevronDown, ChevronUp, X, FileText, ArrowLeft, Calendar, FolderOpen, Users } from "lucide-react";
+import { ChevronDown, ChevronUp, X, FileText, ArrowLeft, Calendar, FolderOpen, Users, Trophy, Medal, Award } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
 
 
@@ -43,11 +43,20 @@ interface CategoryData {
   color: string;
   data: CategoryItem[];
 }
+interface Student {
+  rank: number;
+  name: string;
+  percentage: number;
+  avatar: string;
+  location: string;
+}
 
 export default function AcademicsSection() {
   const [showAllGrades, setShowAllGrades] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
+  const [isLeaderboardModalOpen, setIsLeaderboardModalOpen] = useState(false);
+
 
   const academicData = {
     cgpa: "8.5",
@@ -59,7 +68,7 @@ export default function AcademicsSection() {
       { semester: "Sem 1", percentage: 90, rank: 25 },
       { semester: "Sem 2", percentage: 75, rank: 18 },
       { semester: "Sem 3", percentage: 80, rank: 16 },
-      { semester: "Sem 4", percentage: 78, rank: 15 }
+      { semester: "Sem 4", percentage: 78, rank: 15 },
     ] as SemesterPerformance[],
     subjects: [
       {
@@ -93,8 +102,102 @@ export default function AcademicsSection() {
         grades: { midterm: 82, assignment: 90, final: 85, overall: "A-" },
       },
     ] as Subject[],
+    topStudents: [
+      {
+        rank: 1,
+        name: "Arjun Sharma",
+        percentage: 96.5,
+        avatar: "AS",
+        location: "Bangalore",
+      },
+      {
+        rank: 2,
+        name: "Priya Patel",
+        percentage: 95.2,
+        avatar: "PP",
+        location: "Pune",
+      },
+      {
+        rank: 3,
+        name: "Rahul Gupta",
+        percentage: 94.8,
+        avatar: "RG",
+        location: "Lucknow",
+      },
+    ] as Student[],
+    allStudents: [
+      {
+        rank: 1,
+        name: "Arjun Sharma",
+        percentage: 96.5,
+        avatar: "AS",
+        location: "Bangalore",
+      },
+      {
+        rank: 2,
+        name: "Priya Patel",
+        percentage: 95.2,
+        avatar: "PP",
+        location: "Pune",
+      },
+      {
+        rank: 3,
+        name: "Rahul Gupta",
+        percentage: 94.8,
+        avatar: "RG",
+        location: "Lucknow",
+      },
+      {
+        rank: 4,
+        name: "Sneha Reddy",
+        percentage: 93.1,
+        avatar: "SR",
+        location: "Hyderabad",
+      },
+      {
+        rank: 5,
+        name: "Vikram Singh",
+        percentage: 92.7,
+        avatar: "VS",
+        location: "Delhi",
+      },
+      {
+        rank: 6,
+        name: "Anjali Mehta",
+        percentage: 91.9,
+        avatar: "AM",
+        location: "Mumbai",
+      },
+      {
+        rank: 7,
+        name: "Karthik Nair",
+        percentage: 90.8,
+        avatar: "KN",
+        location: "Chennai",
+      },
+      {
+        rank: 8,
+        name: "Ritu Agarwal",
+        percentage: 89.5,
+        avatar: "RA",
+        location: "Jaipur",
+      },
+      {
+        rank: 9,
+        name: "Siddharth Joshi",
+        percentage: 88.2,
+        avatar: "SJ",
+        location: "Ahmedabad",
+      },
+      {
+        rank: 10,
+        name: "Deepika Rao",
+        percentage: 87.1,
+        avatar: "DR",
+        location: "Bangalore",
+      },
+    ] as Student[],
   };
-
   const categoryData: Record<string, CategoryData> = {
     "Fortnightly Tests": {
       icon: Calendar,
@@ -149,24 +252,52 @@ export default function AcademicsSection() {
     setSelectedSubject(null);
     setSelectedCategory(null);
   };
+  
+  const getRankIcon = (rank: number) => {
+    switch (rank) {
+      case 1:
+        return <Trophy className="w-5 h-5 text-yellow-500" />;
+      case 2:
+        return <Medal className="w-5 h-5 text-gray-400" />;
+      case 3:
+        return <Award className="w-5 h-5 text-amber-600" />;
+      default:
+        return (
+          <span className="w-5 h-5 flex items-center justify-center text-sm font-bold text-gray-500">
+            #{rank}
+          </span>
+        );
+    }
+  };
 
-  const CustomTooltip: React.FC<CustomTooltipProps> = ({ active, payload, label }) => {
+  const getRankColor = (rank: number) => {
+    switch (rank) {
+      case 1:
+        return "bg-gradient-to-r from-yellow-400 to-yellow-500";
+      case 2:
+        return "bg-gradient-to-r from-gray-300 to-gray-400";
+      case 3:
+        return "bg-gradient-to-r from-amber-400 to-amber-500";
+      default:
+        return "bg-gradient-to-r from-blue-400 to-blue-500";
+    }
+  };
+  const LeaderboardTooltip = ({
+    active,
+    payload,
+    label,
+  }: CustomTooltipProps) => {
     if (active && payload && payload.length) {
-      const semesterData = academicData.semesterPerformance.find(s => s.semester === label);
       return (
-        <div className="bg-white p-3 rounded-lg shadow-lg border">
-          <p className="font-semibold text-gray-900">{label}</p>
-          <p className="text-blue-600">
-            Performance: {payload[0].value}%
-          </p>
-          <p className="text-gray-600 text-sm">
-            Rank: #{semesterData?.rank}
-          </p>
+        <div className="bg-white border border-gray-200 rounded-lg shadow-lg p-3">
+          <p className="font-semibold">{`${label}`}</p>
+          <p className="text-blue-600">{`${payload[0].value}%`}</p>
         </div>
       );
     }
     return null;
   };
+  
 
   return (
     <div className="space-y-6">
@@ -213,7 +344,8 @@ export default function AcademicsSection() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Semester Performance Chart */}
         <div className="bg-white/80 backdrop-blur-sm shadow-lg rounded-lg border-0">
           <div className="p-6">
             <div className="flex justify-between items-center mb-4">
@@ -223,24 +355,24 @@ export default function AcademicsSection() {
             </div>
             <div className="h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart 
-                  data={academicData.semesterPerformance} 
-                  margin={{ top: 15, right: 30, left: 20, bottom: 15 }}
+                <BarChart
+                  data={academicData.semesterPerformance}
+                  margin={{ top: 15, right: 10, left: -30, bottom: 15 }}
                 >
                   <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
-                  <XAxis 
-                    dataKey="semester" 
+                  <XAxis
+                    dataKey="semester"
                     tick={{ fontSize: 12 }}
                     stroke="#6b7280"
                   />
-                  <YAxis 
+                  <YAxis
                     domain={[60, 100]}
                     tick={{ fontSize: 12 }}
                     stroke="#6b7280"
                   />
-                  <Tooltip content={<CustomTooltip />} />
-                  <Bar 
-                    dataKey="percentage" 
+                  <Tooltip content={<LeaderboardTooltip />} />
+                  <Bar
+                    dataKey="percentage"
                     fill="#486AA0"
                     radius={[4, 4, 0, 0]}
                     name="Performance"
@@ -248,27 +380,113 @@ export default function AcademicsSection() {
                 </BarChart>
               </ResponsiveContainer>
             </div>
-           
           </div>
         </div>
 
         <div className="bg-white/80 backdrop-blur-sm shadow-lg rounded-lg border-0">
           <div className="p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h4 className="text-xl font-bold text-gray-800">Overall Batch Rank</h4>
-              <span className="text-sm px-4 py-1 md:py-2 bg-green-100 text-green-800 rounded-full">
-                Batch: {academicData.overallRank}
-              </span>
-            </div>
-            <div className="h-40 flex items-center justify-center bg-gray-50 rounded-lg">
-              <div className="text-center">
-                <div className="text-4xl font-bold text-green-600 mb-2">
-                  #{academicData.overallRank}
-                </div>
-                <div className="text-sm text-gray-600">
-                  Overall Batch Ranking
-                </div>
+            <div className="mb-2 flex items-start justify-between">
+              <h4 className="text-xl font-bold text-gray-800">
+                Class Leaderboard
+              </h4>
+              <div className="flex justify-end mb-4 w-full">
+                <button
+                  onClick={() => setIsLeaderboardModalOpen(true)}
+                  className="flex flex-col items-center gap-1 px-3 py-2 bg-[#D4E3F5] hover:bg-[#BBC9E7] text-[#1B3A6A] rounded-lg transition-colors duration-200 cursor-pointer ease-in-out"
+                >
+                  <Users className="w-4 h-4" />
+                  <span className="text-sm font-medium">View All</span>
+                </button>
               </div>
+            </div>
+
+            <div className="space-y-3">
+              {academicData.topStudents.map((student, index) => (
+                <div
+                  key={student.rank}
+                  className={`flex items-center gap-3 p-3 rounded-lg ${
+                    index === 0
+                      ? "bg-yellow-50 border border-yellow-200"
+                      : index === 1
+                      ? "bg-gray-50 border border-gray-200"
+                      : "bg-amber-50 border border-amber-200"
+                  }`}
+                >
+                  <div className="flex items-center justify-center">
+                    {getRankIcon(student.rank)}
+                  </div>
+                  <div
+                    className={`w-10 h-10 rounded-full ${getRankColor(
+                      student.rank
+                    )} flex items-center justify-center text-white font-bold text-sm`}
+                  >
+                    {student.avatar}
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-gray-800 text-sm">
+                      {student.name}
+                    </p>
+                    <p className="text-xs text-gray-600">
+                      {student.percentage}%
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        <div className="bg-white/80 backdrop-blur-sm shadow-lg rounded-lg border-0">
+          <div className="p-6">
+            <div className="mb-2 flex items-start justify-between">
+              <h4 className="text-xl font-bold text-gray-800">
+                Overall Leaderboard
+              </h4>
+              <div className="flex justify-end mb-4 w-full">
+                <button
+                  onClick={() => setIsLeaderboardModalOpen(true)}
+                  className="flex flex-col items-center gap-1 px-3 py-2 bg-[#D4E3F5] hover:bg-[#BBC9E7] text-[#1B3A6A] rounded-lg transition-colors duration-200 cursor-pointer ease-in-out"
+                >
+                  <Users className="w-4 h-4" />
+                  <span className="text-sm font-medium">View All</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-3">
+              {academicData.topStudents.map((student, index) => (
+                <div
+                  key={student.rank}
+                  className={`flex items-center gap-3 p-3 rounded-lg ${
+                    index === 0
+                      ? "bg-yellow-50 border border-yellow-200"
+                      : index === 1
+                      ? "bg-gray-50 border border-gray-200"
+                      : "bg-amber-50 border border-amber-200"
+                  }`}
+                >
+                  <div className="flex items-center justify-center">
+                    {getRankIcon(student.rank)}
+                  </div>
+                  <div
+                    className={`w-10 h-10 rounded-full ${getRankColor(
+                      student.rank
+                    )} flex items-center justify-center text-white font-bold text-sm`}
+                  >
+                    {student.avatar}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <p className="font-semibold text-gray-800 text-sm">
+                        {student.name}
+                      </p>
+                    </div>
+                    <p className="text-xs text-gray-600">
+                      {student.percentage}%
+                    </p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
         </div>
@@ -510,6 +728,64 @@ export default function AcademicsSection() {
           </div>
         </div>
       )}
+      {isLeaderboardModalOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50 p-4 shadow-2xl">
+          <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden">
+            <div className="flex justify-between items-center p-6 border-b">
+              <h2 className="text-2xl font-bold text-gray-800">
+                All Student Rankings
+              </h2>
+              <button
+                onClick={() => setIsLeaderboardModalOpen(false)}
+                className="p-2 hover:bg-gray-100 rounded-lg transition-colors duration-200"
+              >
+                <X className="w-5 h-5 text-gray-500 cursor-pointer" />
+              </button>
+            </div>
+
+            <div className="p-6 overflow-y-auto max-h-96">
+              <div className="space-y-3">
+                {academicData.allStudents.map((student, index) => (
+                  <div
+                    key={student.rank}
+                    className={`flex items-center gap-4 p-4 rounded-lg border ${
+                      index < 3
+                        ? "bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200"
+                        : "bg-gray-50 border-gray-200"
+                    } hover:shadow-md transition-shadow duration-200`}
+                  >
+                    <div className="flex items-center justify-center">
+                      {getRankIcon(student.rank)}
+                    </div>
+                    <div
+                      className={`w-12 h-12 rounded-full ${getRankColor(
+                        student.rank
+                      )} flex items-center justify-center text-white font-bold`}
+                    >
+                      {student.avatar}
+                    </div>
+                    <div className="flex-1">
+                      <p className="font-semibold text-gray-800">
+                        {student.name}
+                      </p>
+                      <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-xs font-medium rounded-full">
+                        {student.location}
+                      </span>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xl font-bold text-gray-800">
+                        {student.percentage}%
+                      </p>
+                      <p className="text-xs text-gray-500">Performance</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    
     </div>
   );
 }
