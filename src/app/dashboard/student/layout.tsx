@@ -14,7 +14,16 @@ import {
 const StudentLayout = ({ children }: { children: React.ReactNode }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
+  const [tokenPresent, setTokenPresent] = useState(false);
   const router = useRouter();
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    setTokenPresent(!!token);
+    if (!token) {
+      router.push('/auth/login/student');
+    }
+  }, [router]);
+
 
   const menuItems = [
     { id: "profile", label: "Profile", icon: User, href: "/dashboard/student" },
@@ -68,6 +77,9 @@ const StudentLayout = ({ children }: { children: React.ReactNode }) => {
     setTimeout(() => {
         router.push('/auth/login/student');
     }, 2000);
+  }
+  if (!tokenPresent) {
+    return null
   }
 
   return (
