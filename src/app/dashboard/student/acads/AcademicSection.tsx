@@ -1,15 +1,40 @@
 'use client';
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { ChevronDown, ChevronUp, X, FileText, ArrowLeft, Calendar, FolderOpen, Users, Trophy, Medal, Award } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
+import { useRouter } from 'next/navigation';
+import axios from "axios";
 
+interface ApiResponse {
+  success: boolean;
+  data: StudentData;
+}
+
+interface StudentData {
+  id: string;
+  name: string;
+  email: string;
+  gender: string;
+  phoneNumber: string;
+  enrollmentNumber: string;
+  semesterNo: number;
+  center: {
+    name: string;
+  };
+  department: {
+    name: string;
+  };
+  batch: {
+    name: string;
+  };
+}
 
 interface CustomTooltipProps {
   active?: boolean;
   payload?: Array<{
     value: number;
-    [key: string]:unknown
+    [key: string]: unknown;
   }>;
   label?: string;
 }
@@ -43,6 +68,7 @@ interface CategoryData {
   color: string;
   data: CategoryItem[];
 }
+
 interface Student {
   rank: number;
   name: string;
@@ -52,11 +78,49 @@ interface Student {
 }
 
 export default function AcademicsSection() {
+  const [tokenPresent, setTokenPresent] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
   const [showAllGrades, setShowAllGrades] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [isLeaderboardModalOpen, setIsLeaderboardModalOpen] = useState(false);
 
+  useEffect(() => {
+    const token = localStorage.getItem('authToken');
+    setTokenPresent(!!token);
+    if (!token) {
+      router.push('/auth/login/student');
+    } else {
+      setLoading(false);
+    }
+  }, [router]);
+
+  useEffect(() => {
+    const validateToken = async () => {
+      try {
+        const token = localStorage.getItem('authToken');
+        if (!token) return;
+
+        await axios.get<ApiResponse>('http://localhost:8000/api/student/get-student-profile', {
+          headers: { "token": token },
+        });
+      } catch (err) {
+        if (axios.isAxiosError(err) && err.response?.status === 401) {
+          localStorage.removeItem('authToken');
+          router.push('/auth/login/student');
+        } else {
+          setError('Failed to validate session');
+        }
+      }
+    };
+
+    if (tokenPresent) {
+      validateToken();
+    }
+  }, [tokenPresent, router]);
 
   const academicData = {
     cgpa: "8.5",
@@ -198,6 +262,7 @@ export default function AcademicsSection() {
       },
     ] as Student[],
   };
+
   const categoryData: Record<string, CategoryData> = {
     "Fortnightly Tests": {
       icon: Calendar,
@@ -282,6 +347,7 @@ export default function AcademicsSection() {
         return "bg-gradient-to-r from-blue-400 to-blue-500";
     }
   };
+  
   const LeaderboardTooltip = ({
     active,
     payload,
@@ -297,7 +363,22 @@ export default function AcademicsSection() {
     }
     return null;
   };
-  
+
+  if (!tokenPresent || loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-xl text-gray-600">Loading academics data...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-xl text-red-600">Error: {error}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -728,8 +809,9 @@ export default function AcademicsSection() {
           </div>
         </div>
       )}
+      
       {isLeaderboardModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50 p-4 shadow-2xl">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-lg">
           <div className="bg-white rounded-lg shadow-xl w-full max-w-2xl max-h-[80vh] overflow-hidden">
             <div className="flex justify-between items-center p-6 border-b">
               <h2 className="text-2xl font-bold text-gray-800">
@@ -785,7 +867,6 @@ export default function AcademicsSection() {
           </div>
         </div>
       )}
-    
     </div>
   );
 }
