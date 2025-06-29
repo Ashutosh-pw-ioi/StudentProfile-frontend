@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import {
   Upload,
   FileSpreadsheet,
@@ -9,6 +9,7 @@ import {
   AlertCircle,
   X,
 } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function UploadSection() {
   const [dragActive, setDragActive] = useState(false);
@@ -18,6 +19,16 @@ export default function UploadSection() {
   );
   const [showSchemaHelp, setShowSchemaHelp] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [tokenPresent,setTokenPresent]=useState(false);
+  const router = useRouter()
+
+  useEffect(() => {
+      const token = localStorage.getItem('authToken');
+      setTokenPresent(!!token);
+      if (!token) {
+        router.push('/auth/login/student');
+      }
+    }, [router]);
 
   const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -79,6 +90,10 @@ export default function UploadSection() {
       fileInputRef.current.value = "";
     }
   };
+
+  if(!tokenPresent){
+    return null;
+  }
 
   const SchemaHelpModal = () => (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50 p-4">
@@ -362,7 +377,7 @@ export default function UploadSection() {
             </div>
             <h4 className="font-semibold text-gray-800 mb-2">Need Help?</h4>
             <p className="text-sm text-gray-600">
-              Click "Schema Help" to see formatting guidelines
+              Click Schema Help to see formatting guidelines
             </p>
           </div>
         </div>
