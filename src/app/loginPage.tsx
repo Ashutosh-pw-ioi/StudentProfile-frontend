@@ -3,7 +3,7 @@ import { useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
-import router from "next/router";
+import { useRouter } from "next/navigation";
 
 interface LoginPageProps {
   role: "student" | "admin" | "teacher";
@@ -32,19 +32,19 @@ const roleConfig = {
     title: "Student Portal",
     subtitle: "Access your student dashboard",
     emailPlaceholder: "Enter your student email",
-    apiRole: "STUDENT",
+    apiRole: "Student",
   },
   admin: {
     title: "Admin Portal",
     subtitle: "Welcome back to your admin panel",
     emailPlaceholder: "Enter your admin email",
-    apiRole: "ADMIN",
+    apiRole: "Admin",
   },
   teacher: {
     title: "Teacher Portal",
     subtitle: "Welcome back to your teacher panel",
     emailPlaceholder: "Enter your teacher email",
-    apiRole: "TEACHER",
+    apiRole: "Teacher",
   },
 };
 
@@ -59,6 +59,7 @@ export default function LoginPage({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
 
   const config = roleConfig[role];
 
@@ -97,9 +98,7 @@ export default function LoginPage({
         `Welcome back, ${user.email}! Redirecting to ${role} dashboard...`
       );
 
-      setTimeout(() => {
-        router.push(`/dashboard/${role}`);
-      }, 2000);
+      router.push(`/dashboard/${role}`);
     } catch (error) {
       console.error("Login error:", error);
 
