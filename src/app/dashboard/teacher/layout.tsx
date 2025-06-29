@@ -2,7 +2,15 @@
 
 import React, { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import { User, HelpCircle, LogOut, Menu, X, BookOpen } from "lucide-react";
+import {
+  User,
+  HelpCircle,
+  LogOut,
+  Menu,
+  X,
+  BookOpen,
+  Upload,
+} from "lucide-react";
 
 const TeacherLayout = ({ children }: { children: React.ReactNode }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -18,6 +26,12 @@ const TeacherLayout = ({ children }: { children: React.ReactNode }) => {
       href: "/dashboard/teacher/courses",
     },
     {
+      id: "upload",
+      label: "Upload",
+      icon: Upload,
+      href: "/dashboard/teacher/upload",
+    },
+    {
       id: "help",
       label: "Help",
       icon: HelpCircle,
@@ -27,6 +41,7 @@ const TeacherLayout = ({ children }: { children: React.ReactNode }) => {
 
   const getActiveSection = () => {
     if (pathname.includes("/courses")) return "courses";
+    if (pathname.includes("/upload")) return "upload";
     if (pathname.includes("/help")) return "help";
     return "profile";
   };
