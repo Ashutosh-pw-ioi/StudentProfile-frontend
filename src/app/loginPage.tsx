@@ -52,15 +52,20 @@ export default function LoginPage({
   role,
   imagePath,
   bgColor = "#F1CB8D",
+  primaryColor = "#1B3A6A",
+  hoverColor = "#486AA0",
+  focusColor = "#D9A864",
 }: LoginPageProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
 
   const config = roleConfig[role];
 
+  // Handle client-side hydration
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -68,9 +73,10 @@ export default function LoginPage({
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    // Validate inputs
     if (!email.trim()) {
       toast.error("Please enter your email address", {
-        toastId: "email-required",
+        toastId: "email-required", // Prevent duplicate toasts
       });
       return;
     }
@@ -82,6 +88,7 @@ export default function LoginPage({
       return;
     }
 
+    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email.trim())) {
       toast.error("Please enter a valid email address", {
@@ -110,6 +117,7 @@ export default function LoginPage({
 
       const { token, user } = response.data;
 
+      // Only use localStorage on client side
       if (isClient && typeof window !== "undefined") {
         localStorage.setItem("authToken", token);
         localStorage.setItem("user", JSON.stringify(user));
@@ -120,8 +128,10 @@ export default function LoginPage({
         autoClose: 2000,
       });
 
-      router.push(`/dashboard/${role}`);
-      
+      // Delay navigation to allow toast to show
+      setTimeout(() => {
+        router.push(`/dashboard/${role}`);
+      }, 2000);
     } catch (error) {
       console.error("Login error:", error);
 
@@ -184,6 +194,7 @@ export default function LoginPage({
       className="min-h-screen flex items-center justify-center p-4"
       style={{ backgroundColor: bgColor }}
     >
+      {/* Toast Container with better configuration */}
       <ToastContainer
         position="top-right"
         autoClose={4000}
@@ -226,22 +237,68 @@ export default function LoginPage({
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Password
               </label>
-              <input
-                type="password"
-                required
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#486AA0] focus:border-[#486AA0] transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={isLoading}
-                minLength={6}
-              />
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  required
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:outline-none focus:ring-1 focus:ring-[#486AA0] focus:border-[#486AA0] transition duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                  disabled={isLoading}
+                  minLength={6}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute inset-y-0 right-0 pr-3 flex items-center text-gray-400 hover:text-gray-600 transition-colors duration-200 cursor-pointer"
+                  disabled={isLoading}
+                >
+                  {showPassword ? (
+                    <svg
+                      className="h-5 w-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"
+                      />
+                    </svg>
+                  ) : (
+                    <svg
+                      className="h-5 w-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                      />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+                      />
+                    </svg>
+                  )}
+                </button>
+              </div>
             </div>
 
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full text-white py-3 px-4 rounded-lg font-semibold focus:outline-none focus:ring-1 focus:ring-offset-2 focus:ring-blue-400 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200 flex items-center justify-center bg-[#1B3A6A] hover:bg-[#486AA0] cursor-pointer ease-in-out"
+              className="w-full text-white py-3 px-4 rounded-lg font-semibold focus:outline-none focus:ring-1 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition duration-200 flex items-center justify-center bg-[#486AA0] hover:bg-[#1B3A6A] cursor-pointer ease-in-out"
             >
               {isLoading ? (
                 <>
