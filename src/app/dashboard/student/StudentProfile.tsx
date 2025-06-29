@@ -3,10 +3,57 @@
 import React, { useEffect, useState } from "react";
 import { User, ArrowUpRight } from "lucide-react";
 import { useRouter } from 'next/navigation';
+import axios from "axios";
+
+// Define the API response structure
+interface ApiResponse {
+  success: boolean;
+  data: StudentData;
+}
+
+// Define the student data interface based on actual API response
+interface StudentData {
+  id: string;
+  name: string;
+  email: string;
+  gender: string;
+  phoneNumber: string;
+  enrollmentNumber: string;
+  semesterNo: number;
+  center: {
+    name: string;
+  };
+  department: {
+    name: string;
+  };
+  batch: {
+    name: string;
+  };
+  // Optional fields that might be added later or from other endpoints
+  centerCity?: string;
+  coursesOpted?: string[];
+  admissionDate?: string;
+  expectedGraduation?: string;
+  cgpa?: number;
+  attendance?: number;
+  rollNo?: string;
+}
+
+// Define attendance data interface
+interface AttendanceData {
+  course: string;
+  percent: number;
+  present: number;
+  total: number;
+  absent: number;
+}
 
 export default function StudentProfile() {
-  const [showAttendanceModal, setShowAttendanceModal] = useState(false);
-  const [tokenPresent, setTokenPresent] = useState(false);
+  const [showAttendanceModal, setShowAttendanceModal] = useState<boolean>(false);
+  const [tokenPresent, setTokenPresent] = useState<boolean>(false);
+  const [studentData, setStudentData] = useState<StudentData | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
   const router = useRouter();
 
   useEffect(() => {
@@ -17,28 +64,109 @@ export default function StudentProfile() {
     }
   }, [router]);
 
-  const studentData = {
-    name: "John Doe",
-    role: "Data Science Student",
-    batch: "Batch 2024",
-    center: "Bangalore",
-    rollNo: "DS001",
-    department: "SOT",
-    semester: "4th Semester",
-    gender: "Male",
-    email: "john.doe@example.com",
-    studentId: "IOI2024DS001",
-    mobile: "+91 9876543210",
-    centerCity: "Bengaluru",
-    admissionDate: "Aug 15, 2022",
-    coursesOpted: "4",
-    expectedGraduation: "May 2025",
-    cgpa: "8.5",
-    attendance: "85%",
-  };
+  // Fixed async useEffect
+  useEffect(() => {
+    const fetchStudentData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
+        
+        const token = localStorage.getItem('authToken');
+        if (!token) {
+          throw new Error('No authentication token found');
+        }
+
+        const response = await axios.get<ApiResponse>('http://localhost:8000/api/student/get-student-profile', {
+          headers: {"token":token},
+        });
+
+        // Check if the API call was successful
+        if (response.data.success) {
+          setStudentData(response.data.data);
+        } else {
+          throw new Error('API returned unsuccessful response');
+        }
+      } catch (err) {
+        console.error('Error fetching student data:', err);
+        if (axios.isAxiosError(err)) {
+          if (err.response?.status === 401) {
+            // Token might be expired, redirect to login
+            localStorage.removeItem('authToken');
+            router.push('/auth/login/student');
+          } else {
+            setError(err.response?.data?.message || 'Failed to fetch student data');
+          }
+        } else {
+          setError('An unexpected error occurred');
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (tokenPresent) {
+      fetchStudentData();
+    }
+  }, [tokenPresent, router]);
+
+  // Mock attendance data - replace with actual API call if needed
+  const attendanceData: AttendanceData[] = [
+    {
+      course: "Data Structures & Algorithms",
+      percent: 85,
+      present: 34,
+      total: 40,
+      absent: 6,
+    },
+    {
+      course: "Machine Learning",
+      percent: 72,
+      present: 26,
+      total: 36,
+      absent: 10,
+    },
+    {
+      course: "Database Management",
+      percent: 90,
+      present: 27,
+      total: 30,
+      absent: 3,
+    },
+    {
+      course: "Software Engineering",
+      percent: 78,
+      present: 25,
+      total: 32,
+      absent: 7,
+    },
+  ];
 
   if (!tokenPresent) {
-    return null
+    return null;
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-xl text-gray-600">Loading student profile...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-xl text-red-600">Error: {error}</div>
+      </div>
+    );
+  }
+
+  if (!studentData) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-xl text-gray-600">No student data available</div>
+      </div>
+    );
   }
 
   return (
@@ -62,10 +190,10 @@ export default function StudentProfile() {
                 </h3>
                 <div className="flex gap-2 flex-wrap">
                   <span className="text-sm px-4 py-1 bg-[#D4E3F5] text-[#1B3A6A] rounded-full">
-                    {studentData.batch}
+                    {studentData.batch.name}
                   </span>
                   <span className="text-sm px-4 py-1 bg-[#D4E3F5] text-[#1B3A6A] rounded-full">
-                    {studentData.center}
+                    {studentData.center.name}
                   </span>
                 </div>
               </div>
@@ -75,7 +203,7 @@ export default function StudentProfile() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {["Roll No.", "Department", "Ongoing Semester"].map((title, i) => (
+        {["Roll No.", "Department", "Ongoing semesterNo"].map((title, i) => (
           <div
             key={title}
             className="bg-white/80 backdrop-blur-sm shadow-lg rounded-lg border-0"
@@ -87,9 +215,9 @@ export default function StudentProfile() {
               <p className="text-2xl font-bold text-gray-800">
                 {
                   [
-                    studentData.rollNo,
-                    studentData.department,
-                    studentData.semester,
+                    studentData.rollNo || studentData.enrollmentNumber,
+                    studentData.department.name,
+                    studentData.semesterNo,
                   ][i]
                 }
               </p>
@@ -108,9 +236,13 @@ export default function StudentProfile() {
             <div className="space-y-4">
               {[
                 ["Gender", studentData.gender],
-                ["Student ID", studentData.studentId],
-                ["Center City", studentData.centerCity],
-                ["Courses Opted", studentData.coursesOpted],
+                ["Student ID", studentData.enrollmentNumber],
+                ["Center City", studentData.centerCity || studentData.center.name],
+                ["Courses Opted", studentData.coursesOpted
+                  ? (Array.isArray(studentData.coursesOpted) 
+                    ? studentData.coursesOpted.join(', ') 
+                    : studentData.coursesOpted)
+                  : 'N/A'],
               ].map(([label, value]) => (
                 <div
                   key={label}
@@ -127,9 +259,9 @@ export default function StudentProfile() {
             <div className="space-y-4">
               {[
                 ["Email", studentData.email],
-                ["Mobile", studentData.mobile],
-                ["Admission Date", studentData.admissionDate],
-                ["Expected Graduation", studentData.expectedGraduation],
+                ["Phone Number", studentData.phoneNumber],
+                ["Admission Date", studentData.admissionDate || 'N/A'],
+                ["Expected Graduation", studentData.expectedGraduation || 'N/A'],
               ].map(([label, value]) => (
                 <div
                   key={label}
@@ -153,7 +285,7 @@ export default function StudentProfile() {
           </div>
           <div className="text-center pt-0 pb-6">
             <p className="text-5xl font-bold text-green-500">
-              {studentData.cgpa}
+              {studentData.cgpa || 'N/A'}
             </p>
           </div>
         </div>
@@ -171,7 +303,7 @@ export default function StudentProfile() {
           </div>
           <div className="text-center pt-0 pb-6">
             <p className="text-5xl font-bold text-blue-500">
-              {studentData.attendance}
+              {studentData.attendance || 'N/A'}
             </p>
           </div>
         </div>
@@ -193,36 +325,7 @@ export default function StudentProfile() {
             </div>
 
             <div className="space-y-4">
-              {[
-                {
-                  course: "Data Structures & Algorithms",
-                  percent: 85,
-                  present: 34,
-                  total: 40,
-                  absent: 6,
-                },
-                {
-                  course: "Machine Learning",
-                  percent: 72,
-                  present: 26,
-                  total: 36,
-                  absent: 10,
-                },
-                {
-                  course: "Database Management",
-                  percent: 90,
-                  present: 27,
-                  total: 30,
-                  absent: 3,
-                },
-                {
-                  course: "Software Engineering",
-                  percent: 78,
-                  present: 25,
-                  total: 32,
-                  absent: 7,
-                },
-              ].map(({ course, percent, present, total, absent }) => (
+              {attendanceData.map(({ course, percent, present, total, absent }) => (
                 <div
                   key={course}
                   className="bg-gray-50 rounded-xl p-6 space-y-2"
