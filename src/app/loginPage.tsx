@@ -128,10 +128,7 @@ export default function LoginPage({
         autoClose: 2000,
       });
 
-      // Delay navigation to allow toast to show
-      setTimeout(() => {
-        router.push(`/dashboard/${role}`);
-      }, 2000);
+      router.push(`/dashboard/${role}`);
     } catch (error) {
       console.error("Login error:", error);
 
