@@ -108,7 +108,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen w-screen">
       <button
         id="mobile-menu-button"
         onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -180,7 +180,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
       </div>
 
       <div className="flex-1 bg-[#FFE4B8] lg:ml-0">
-        <div className="p-6">{children}</div>
+        <div className="p-6 w-[1000px]">{children}</div>
       </div>
     </div>
   );
