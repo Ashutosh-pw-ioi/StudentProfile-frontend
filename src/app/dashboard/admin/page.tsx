@@ -16,7 +16,7 @@ function getSemesterString(semesterNo: number): string {
   return `${semesterNo}th`;
 }
 
-// Helper function to convert semester string to number
+
 function getSemesterNumber(semesterStr: string): number {
   return parseInt(semesterStr);
 }
