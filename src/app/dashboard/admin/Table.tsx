@@ -8,7 +8,7 @@ interface GenericTableItem {
   [key: string]: any;
 }
 
-interface ColumnConfig {
+interface ColumnConfig{
   key: string;
   label: string;
   type?: "text" | "number" | "email" | "select" | "badge";
@@ -493,32 +493,32 @@ const Table: React.FC<TableProps> = ({
               </tr>
             </thead>
             <tbody>
-  {paginatedRows.map((item) => (
-    <tr key={item.id} className="border-b hover:bg-gray-50">
-      {columns.map((column) => (
-        <td key={`${item.id}-${column.key}`} className="py-3 px-4 text-gray-600">
-          {renderCellContent(item, column)}
-        </td>
-      ))}
-      <td key={`${item.id}-actions`} className="py-3 px-4">
-        <div className="flex space-x-2">
-          <button
-            onClick={() => handleEditClick(item)}
-            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
-          >
-            <Edit className="w-4 h-4" />
-          </button>
-          <button
-            onClick={() => handleDeleteClick(item.id)}
-            className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-          >
-            <Trash2 className="w-4 h-4" />
-          </button>
-        </div>
-      </td>
-    </tr>
-  ))}
-</tbody>
+              {paginatedRows.map((item) => (
+                <tr key={`${item.id}-${Math.random()}`} className="border-b hover:bg-gray-50">
+                  {columns.map((column) => (
+                    <td key={column.key} className="py-3 px-4 text-gray-600">
+                      {renderCellContent(item, column)}
+                    </td>
+                  ))}
+                  <td  className="py-3 px-4">
+                    <div className="flex space-x-2">
+                      <button
+                        onClick={() => handleEditClick(item)}
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+                      >
+                        <Edit className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDeleteClick(item.id)}
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
           </table>
         </div>
 
