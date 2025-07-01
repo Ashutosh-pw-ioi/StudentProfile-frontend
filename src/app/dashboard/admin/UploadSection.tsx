@@ -12,10 +12,32 @@ import {
 import SchemaHelpModal from "./SchemaHelpModal";
 
 interface UploadSectionProps {
-  onSuccess?: () => void; // Add onSuccess callback
+  onSuccess?: () => void;
+  uploadUrl: string;
+  schemaInfo: {
+    title: string;
+    columns: string[];
+    sampleRow: string[];
+    columnDescriptions: { key: string; description: string }[];
+    guidelines: string[];
+    commonIssues: string[];
+  };
+  fileSizeLimit?: number;
+  validTypes?: string[];
+  validExtensions?: string[];
 }
 
-export default function UploadSection({ onSuccess }: UploadSectionProps) {
+export default function UploadSection({
+  onSuccess,
+  uploadUrl,
+  schemaInfo,
+  fileSizeLimit = 10 * 1024 * 1024, // Default 10MB
+  validTypes = [
+    "application/vnd.ms-excel",
+    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+  ],
+  validExtensions = [".xls", ".xlsx"],
+}: UploadSectionProps) {
   const [dragActive, setDragActive] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [uploadStatus, setUploadStatus] = useState<
@@ -54,27 +76,24 @@ export default function UploadSection({ onSuccess }: UploadSectionProps) {
     if (!files || files.length === 0) return;
 
     const file = files[0];
-    const validTypes = [
-      "application/vnd.ms-excel",
-      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    ];
-    const validExtensions = [".xls", ".xlsx"];
-
     const isValidType =
       validTypes.includes(file.type) ||
       validExtensions.some((ext) => file.name.toLowerCase().endsWith(ext));
 
     if (!isValidType) {
       setUploadStatus("error");
-      setErrorMessage("Invalid file type. Only Excel files are allowed.");
+      setErrorMessage(
+        `Invalid file type. Only ${validExtensions.join(", ")} files are allowed.`
+      );
       setUploadedFile(null);
       return;
     }
 
-    if (file.size > 10 * 1024 * 1024) {
-      // 10MB limit
+    if (file.size > fileSizeLimit) {
       setUploadStatus("error");
-      setErrorMessage("File size exceeds 10MB limit");
+      setErrorMessage(
+        `File size exceeds ${fileSizeLimit / 1024 / 1024}MB limit`
+      );
       setUploadedFile(null);
       return;
     }
@@ -94,7 +113,7 @@ export default function UploadSection({ onSuccess }: UploadSectionProps) {
     }
   };
 
-  const uploadStudents = async () => {
+  const uploadFile = async () => {
     if (!uploadedFile) return;
 
     setUploadStatus("uploading");
@@ -102,7 +121,7 @@ export default function UploadSection({ onSuccess }: UploadSectionProps) {
     setSuccessMessage("");
 
     try {
-      const token = localStorage.getItem("authToken"); // Use authToken
+      const token = localStorage.getItem("authToken");
       if (!token) {
         throw new Error("Authentication required. Please log in again.");
       }
@@ -110,29 +129,25 @@ export default function UploadSection({ onSuccess }: UploadSectionProps) {
       const formData = new FormData();
       formData.append("file", uploadedFile);
 
-      const response = await fetch(
-        "http://localhost:8000/api/student/add-student",
-        {
-          method: "POST",
-          headers: {
-            token: token,
-          },
-          body: formData,
-        }
-      );
+      const response = await fetch(uploadUrl, {
+        method: "POST",
+        headers: {
+          token: token,
+        },
+        body: formData,
+      });
 
       const result = await response.json();
 
       if (response.ok && result.success) {
         setUploadStatus("success");
-        setSuccessMessage(result.message || "Students added successfully!");
+        setSuccessMessage(result.message || "Data uploaded successfully!");
 
-        // Trigger the refresh callback if provided
         if (onSuccess) {
           onSuccess();
         }
       } else {
-        throw new Error(result.message || "Failed to add students");
+        throw new Error(result.message || "Failed to upload data");
       }
     } catch (error: any) {
       setUploadStatus("error");
@@ -158,7 +173,7 @@ export default function UploadSection({ onSuccess }: UploadSectionProps) {
         <input
           ref={fileInputRef}
           type="file"
-          accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          accept={validTypes.join(",")}
           onChange={handleFileInput}
           className="hidden"
         />
@@ -185,7 +200,7 @@ export default function UploadSection({ onSuccess }: UploadSectionProps) {
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-green-700 mb-2">
-                  Students Added Successfully!
+                  Upload Successful!
                 </h3>
                 <p className="text-gray-600 mb-2">{successMessage}</p>
                 <button
@@ -220,7 +235,7 @@ export default function UploadSection({ onSuccess }: UploadSectionProps) {
                 <Loader2 className="text-[#1B3A6A] animate-spin" size={48} />
               </div>
               <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                Uploading Students...
+                Uploading Data...
               </h3>
               <p className="text-gray-600">
                 Please wait while we process your file
@@ -250,10 +265,10 @@ export default function UploadSection({ onSuccess }: UploadSectionProps) {
                     Remove
                   </button>
                   <button
-                    onClick={uploadStudents}
+                    onClick={uploadFile}
                     className="px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#486AA0] transition-colors relative z-10"
                   >
-                    Upload Students
+                    Upload Data
                   </button>
                 </div>
               </div>
@@ -275,13 +290,14 @@ export default function UploadSection({ onSuccess }: UploadSectionProps) {
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">
                   {dragActive
                     ? "Drop your Excel file here"
-                    : "Upload Student Data"}
+                    : "Upload Data"}
                 </h3>
                 <p className="text-gray-600 mb-2 text-sm">
                   Drag and drop your Excel file here, or click to browse
                 </p>
                 <div className="text-sm text-gray-500">
-                  Supported formats: .xls, .xlsx • Max size: 10MB
+                  Supported formats: {validExtensions.join(", ")} • Max size:{" "}
+                  {fileSizeLimit / 1024 / 1024}MB
                 </div>
               </div>
             </div>
@@ -292,59 +308,7 @@ export default function UploadSection({ onSuccess }: UploadSectionProps) {
       {showSchemaHelp && (
         <SchemaHelpModal
           setShowSchemaHelp={setShowSchemaHelp}
-          schemaInfo={{
-            title: "Student Upload Schema",
-            columns: [
-              "name",
-              "email",
-              "password",
-              "gender",
-              "phoneNumber",
-              "enrollmentNumber",
-              "center",
-              "department",
-              "batch",
-            ],
-            sampleRow: [
-              "John Doe",
-              "john@example.com",
-              "password123",
-              "Male",
-              "1234567890",
-              "ENR2024001",
-              "Patna",
-              "SOT",
-              "SOT24B1",
-            ],
-            columnDescriptions: [
-              { key: "name", description: "Full name of the student" },
-              { key: "email", description: "Email address of the student" },
-              { key: "password", description: "Password for student account" },
-              { key: "gender", description: "Gender (Male, Female, Other)" },
-              { key: "phoneNumber", description: "Phone number (10 digits)" },
-              {
-                key: "enrollmentNumber",
-                description: "Unique enrollment number",
-              },
-              { key: "center", description: "Center name (e.g., Patna)" },
-              { key: "department", description: "Department (SOT, SOM, SOH)" },
-              { key: "batch", description: "Batch name (e.g., SOT24B1)" },
-            ],
-            guidelines: [
-              "Column headers must match exactly",
-              "All fields are required",
-              "Department should be one of: SOT, SOM, SOH",
-              "Center name must match existing centers",
-              "Batch names must match existing batches",
-            ],
-            commonIssues: [
-              "Wrong column names",
-              "Missing required fields",
-              "Incorrect department or center names",
-              "Duplicate enrollment numbers",
-              "Invalid email formats",
-            ],
-          }}
+          schemaInfo={schemaInfo}
         />
       )}
     </div>

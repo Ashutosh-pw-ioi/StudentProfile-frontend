@@ -58,6 +58,25 @@ interface TableCourse {
   studentsFull: Student[];
 }
 
+interface AdminData {
+  id: string;
+  name: string;
+  email: string;
+  center: {
+    id: string;
+    name: string;
+    location: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+}
+
+interface User {
+  id: string;
+  email: string;
+  role: string;
+}
+
 export default function CourseManagement() {
   const [courses, setCourses] = useState<TableCourse[]>([]);
   const [coursesFull, setCoursesFull] = useState<Course[]>([]);
@@ -82,31 +101,61 @@ export default function CourseManagement() {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userCenter, setUserCenter] = useState("");
+  const [adminId, setAdminId] = useState("");
 
-  // Check authentication and get user info
   useEffect(() => {
     const token = localStorage.getItem("authToken");
-    if (!token) {
+    const user = localStorage.getItem("user");
+
+    if (!token || !user) {
       router.push("/auth/login/admin");
       return;
     }
 
-    // Get user center from token payload
     try {
-      const tokenPayload = JSON.parse(atob(token.split(".")[1]));
-      console.log(tokenPayload);
-
-      setUserCenter(tokenPayload.center || "");
-      setFormData((prev) => ({
-        ...prev,
-        centerName: tokenPayload.center || "",
-      }));
+      const userData: User = JSON.parse(user);
+      if (userData.role === "ADMIN" && userData.id) {
+        setAdminId(userData.id);
+      } else {
+        throw new Error("Invalid user data");
+      }
     } catch (error) {
-      console.error("Error parsing token:", error);
+      console.error("Error parsing user data:", error);
+      router.push("/auth/login/admin");
     }
   }, [router]);
 
-  // Fetch courses data
+  const fetchAdminDetails = useCallback(async () => {
+    if (!adminId) return;
+
+    try {
+      const token = localStorage.getItem("authToken");
+      const response = await axios.post<{ success: boolean; data: AdminData }>(
+        "http://localhost:8000/api/admin/get",
+        { id: adminId },
+        {
+          headers: { token }
+        }
+      );
+
+      if (response.data.success) {
+        const adminData = response.data.data;
+        setUserCenter(adminData.center.name);
+        setFormData(prev => ({
+          ...prev,
+          centerName: adminData.center.name
+        }));
+      }
+    } catch (error) {
+      console.error("Error fetching admin details:", error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("user");
+        router.push("/auth/login/admin");
+      }
+    }
+  }, [adminId, router]);
+
   const fetchCourses = useCallback(async () => {
     try {
       setLoading(true);
@@ -118,31 +167,25 @@ export default function CourseManagement() {
 
       const response = await axios.get<CourseData>(
         "http://localhost:8000/api/course/all",
-        {
-          headers: {
-            token: token,
-          },
-        }
+        { headers: { token } }
       );
 
       if (response.status === 401) {
         localStorage.removeItem("authToken");
+        localStorage.removeItem("user");
         router.push("/auth/login/admin");
         return;
       }
 
       const data = response.data;
 
-      // Flatten courses from all departments
       const allCourses: Course[] = [];
       Object.values(data.data).forEach((departmentCourses) => {
         allCourses.push(...departmentCourses);
       });
 
-      // Store full course data
       setCoursesFull(allCourses);
 
-      // Transform the data to match table structure
       const transformedData = allCourses.map((course) => ({
         id: course.courseId,
         name: course.courseName,
@@ -172,10 +215,12 @@ export default function CourseManagement() {
   }, [router]);
 
   useEffect(() => {
-    fetchCourses();
-  }, [fetchCourses, refreshTrigger]);
+    if (adminId) {
+      fetchAdminDetails();
+      fetchCourses();
+    }
+  }, [adminId, fetchAdminDetails, fetchCourses, refreshTrigger]);
 
-  // Update course handler
   const handleUpdateCourse = async (updatedItem: any) => {
     try {
       const token = localStorage.getItem("authToken");
@@ -184,7 +229,6 @@ export default function CourseManagement() {
         return;
       }
 
-      // Find the original course data
       const originalCourse = coursesFull.find(
         (c) => c.courseId === updatedItem.id
       );
@@ -192,7 +236,6 @@ export default function CourseManagement() {
         throw new Error("Course not found");
       }
 
-      // Prepare update payload
       const updateData = {
         id: updatedItem.id,
         name: updatedItem.name,
@@ -204,22 +247,18 @@ export default function CourseManagement() {
         center: updatedItem.center,
       };
 
-      const response = await axios.put(
+      await axios.put(
         "http://localhost:8000/api/course/update",
         updateData,
-        {
-          headers: {
-            token: token,
-          },
-        }
+        { headers: { token } }
       );
 
-      // Refresh data after update
       setRefreshTrigger((prev) => prev + 1);
     } catch (error: any) {
       console.error("Error updating course:", error);
       if (error.response?.status === 401) {
         localStorage.removeItem("authToken");
+        localStorage.removeItem("user");
         router.push("/auth/login/admin");
         return;
       }
@@ -231,7 +270,6 @@ export default function CourseManagement() {
     }
   };
 
-  // Delete course handler
   const handleDeleteCourse = async (id: string) => {
     try {
       const token = localStorage.getItem("authToken");
@@ -240,22 +278,20 @@ export default function CourseManagement() {
         return;
       }
 
-      const response = await axios.delete(
+      await axios.delete(
         "http://localhost:8000/api/course/delete",
         {
-          headers: {
-            token: token,
-          },
+          headers: { token },
           data: { id },
         }
       );
 
-      // Refresh data after delete
       setRefreshTrigger((prev) => prev + 1);
     } catch (error: any) {
       console.error("Error deleting course:", error);
       if (error.response?.status === 401) {
         localStorage.removeItem("authToken");
+        localStorage.removeItem("user");
         router.push("/auth/login/admin");
         return;
       }
@@ -267,31 +303,22 @@ export default function CourseManagement() {
     }
   };
 
-  // Trigger refresh after upload
-  const triggerRefresh = () => {
-    setRefreshTrigger((prev) => prev + 1);
-  };
-
-  // Open students modal
   const openStudentsModal = (students: Student[]) => {
     setCurrentStudents(students);
     setStudentsModalOpen(true);
   };
 
-  // Open teachers modal
   const openTeachersModal = (teachers: Teacher[]) => {
     setCurrentTeachers(teachers);
     setTeachersModalOpen(true);
   };
 
-  // Handle form input changes
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
 
-    // Clear error when field is changed
     if (formErrors[name]) {
       setFormErrors((prev) => {
         const newErrors = { ...prev };
@@ -301,7 +328,6 @@ export default function CourseManagement() {
     }
   };
 
-  // Validate form
   const validateForm = () => {
     const errors: Record<string, string> = {};
     const requiredFields = [
@@ -318,7 +344,6 @@ export default function CourseManagement() {
       }
     });
 
-    // Fixed: Added missing closing parenthesis
     if (isNaN(Number(formData.semesterNumber))) {
       errors.semesterNumber = "Must be a number";
     }
@@ -331,7 +356,6 @@ export default function CourseManagement() {
     return Object.keys(errors).length === 0;
   };
 
-  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -345,7 +369,6 @@ export default function CourseManagement() {
         return;
       }
 
-      // Prepare payload
       const payload = {
         ...formData,
         semesterNumber: Number(formData.semesterNumber),
@@ -356,11 +379,7 @@ export default function CourseManagement() {
       const response = await axios.post(
         "http://localhost:8000/api/course/create",
         payload,
-        {
-          headers: {
-            token: token,
-          },
-        }
+        { headers: { token } }
       );
 
       if (response.status === 201) {
@@ -528,7 +547,7 @@ export default function CourseManagement() {
 
             <form onSubmit={handleSubmit}>
               <div className="space-y-4">
-                {/* Center Name (readonly for admin) */}
+                {/* Center Name */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Center
@@ -749,7 +768,6 @@ export default function CourseManagement() {
           </div>
         </div>
 
-        {/* Add Course Button */}
         <div className="bg-white/80 shadow-lg rounded-lg flex items-center justify-center p-6">
           <button
             onClick={() => setIsAddCourseModalOpen(true)}

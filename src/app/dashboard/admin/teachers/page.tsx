@@ -8,24 +8,6 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import Shimmer from "../Shimmer";
 
-// Helper function to parse JWT token
-const parseJwt = (token: string) => {
-  try {
-    const base64Url = token.split(".")[1];
-    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split("")
-        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-        .join("")
-    );
-
-    return JSON.parse(jsonPayload);
-  } catch (e) {
-    return null;
-  }
-};
-
 export default function TeachersManagement() {
   const [teachers, setTeachers] = useState<any[]>([]);
   const [teachersFull, setTeachersFull] = useState<any[]>([]);
@@ -68,11 +50,8 @@ export default function TeachersManagement() {
       }
 
       const data = response.data;
-
-      // Store full teacher data for edit operations
       setTeachersFull(data.teachers);
 
-      // Transform the data to match table structure
       const transformedData = data.teachers.map((teacher: any) => ({
         id: teacher.id,
         name: teacher.name,
@@ -114,12 +93,9 @@ export default function TeachersManagement() {
         throw new Error("Teacher not found");
       }
 
-      // Get center from token
-      const decoded = parseJwt(token);
-      const centerName = decoded?.centerName;
-
+      const centerName = originalTeacher.center?.name;
       if (!centerName) {
-        throw new Error("Center information not found in token");
+        throw new Error("Center information not found for teacher");
       }
 
       // Prepare update payload
@@ -127,14 +103,14 @@ export default function TeachersManagement() {
         id: updatedItem.id,
         name: updatedItem.name,
         email: updatedItem.email,
-        gender: originalTeacher.gender || "Male", // Default if not available
-        phoneNumber: originalTeacher.phoneNumber || "0000000000", // Default if not available
-        experience: originalTeacher.experience || 0, // Default if not available
+        gender: originalTeacher.gender || "Male",
+        phoneNumber: originalTeacher.phoneNumber || "0000000000",
+        experience: originalTeacher.experience || 0,
         centerName: centerName,
         depName: updatedItem.department,
       };
 
-      const response = await axios.put(
+      await axios.put(
         "http://localhost:8000/api/teacher/update-teacher",
         updateData,
         {
@@ -170,7 +146,7 @@ export default function TeachersManagement() {
         return;
       }
 
-      const response = await axios.delete(
+      await axios.delete(
         "http://localhost:8000/api/teacher/delete-teacher",
         {
           headers: {
@@ -197,7 +173,6 @@ export default function TeachersManagement() {
     }
   };
 
-  // Trigger refresh after upload
   const triggerRefresh = () => {
     setRefreshTrigger((prev) => prev + 1);
   };
@@ -224,6 +199,63 @@ export default function TeachersManagement() {
     );
   }
 
+  // Teacher schema configuration
+  const teacherSchemaInfo = {
+    title: "Teacher Upload",
+    columns: [
+      "name",
+      "email",
+      "password",
+      "gender",
+      "phoneNumber",
+      "experience",
+      "centerName",
+      "departmentName",
+      "batchName",
+      "courseName"
+    ],
+    sampleRow: [
+      "Jane Smith",
+      "jane@example.com",
+      "securePassword",
+      "Female",
+      "0987654321",
+      "5",
+      "Patna",
+      "SOT",
+      "SOT24B1",
+      "Mathematics"
+    ],
+    columnDescriptions: [
+      { key: "name", description: "Full name of the teacher" },
+      { key: "email", description: "Email address of the teacher" },
+      { key: "password", description: "Password for teacher account" },
+      { key: "gender", description: "Gender (Male, Female, Other)" },
+      { key: "phoneNumber", description: "Phone number (10 digits)" },
+      { key: "experience", description: "Years of teaching experience" },
+      { key: "centerName", description: "Center name (e.g., Patna)" },
+      { key: "departmentName", description: "Department (SOT, SOM, SOH)" },
+      { key: "batchName", description: "Batch name (e.g., SOT24B1)" },
+      { key: "courseName", description: "Course name (e.g., Mathematics)" }
+    ],
+    guidelines: [
+      "Column headers must match exactly",
+      "All fields are required",
+      "Department should be one of: SOT, SOM, SOH",
+      "Center name must match existing centers",
+      "Batch names must match existing batches",
+      "Course names must match existing courses in the specified batch"
+    ],
+    commonIssues: [
+      "Wrong column names",
+      "Missing required fields",
+      "Incorrect department, center, or course names",
+      "Duplicate email addresses",
+      "Invalid experience values (should be a number)",
+      "Course not found in the specified batch"
+    ],
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between">
@@ -242,7 +274,11 @@ export default function TeachersManagement() {
             </p>
           </div>
         </div>
-        <UploadSection onSuccess={triggerRefresh} />
+        <UploadSection 
+          onSuccess={triggerRefresh}
+          uploadUrl="http://localhost:8000/api/teacher/add-teacher"
+          schemaInfo={teacherSchemaInfo}
+        />
       </div>
 
       <Table

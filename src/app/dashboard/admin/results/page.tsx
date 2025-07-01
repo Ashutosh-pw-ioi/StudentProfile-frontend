@@ -9,22 +9,26 @@ import axios from "axios";
 import Shimmer from "../Shimmer";
 import StudentScoresModal from "./StudentScoresModal";
 
-// Helper function to parse JWT token
-const parseJwt = (token: string) => {
+// Helper function to get admin ID from localStorage
+const getAdminId = () => {
+  if (typeof window === 'undefined') return null; // Server-side check
+  
+  const user = localStorage.getItem("user");
+  if (!user) return null;
+  
   try {
-    const base64Url = token.split(".")[1];
-    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
-    const jsonPayload = decodeURIComponent(
-      atob(base64)
-        .split("")
-        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
-        .join("")
-    );
-
-    return JSON.parse(jsonPayload);
-  } catch (e) {
+    const userData = JSON.parse(user);
+    return userData.id;
+  } catch (error) {
+    console.error("Error parsing user data:", error);
     return null;
   }
+};
+
+// Helper function to get auth token
+const getAuthToken = () => {
+  if (typeof window === 'undefined') return null; // Server-side check
+  return localStorage.getItem("authToken");
 };
 
 interface Course {
@@ -49,185 +53,290 @@ interface Course {
   }[];
 }
 
+interface TableCourse {
+  id: string;
+  name: string;
+  code: string;
+  credits: number;
+  teachers: string;
+  students: number;
+  department: string;
+}
+
+interface AdminData {
+  id: string;
+  center: {
+    name: string;
+  };
+}
+
 export default function ResultManagement() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const router = useRouter();
+  const [centerName, setCenterName] = useState("");
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
-  const [selectedStudent, setSelectedStudent] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
+  const router = useRouter();
 
-  // Check authentication
+  // Handle client-side mounting
   useEffect(() => {
-    const token = localStorage.getItem("authToken");
+    setMounted(true);
+  }, []);
+
+  // Authentication check
+  const checkAuth = useCallback(() => {
+    if (!mounted) return false;
+    
+    const token = getAuthToken();
     if (!token) {
       router.push("/auth/login/admin");
+      return false;
     }
-  }, [router]);
+    return true;
+  }, [mounted, router]);
+
+  // Fetch admin center
+  const fetchAdminCenter = useCallback(async () => {
+    if (!mounted || !checkAuth()) return;
+
+    const adminId = getAdminId();
+    if (!adminId) {
+      router.push("/auth/login/admin");
+      return;
+    }
+
+    try {
+      const token = getAuthToken();
+      if (!token) {
+        router.push("/auth/login/admin");
+        return;
+      }
+
+      const response = await axios.post<{ data: AdminData }>(
+        "http://localhost:8000/api/admin/get",
+        { id: adminId },
+        { headers: { token } }
+      );
+
+      if (response.data?.data?.center?.name) {
+        setCenterName(response.data.data.center.name);
+      }
+    } catch (error) {
+      console.error("Error fetching admin center:", error);
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        if (mounted) {
+          localStorage.removeItem("authToken");
+          localStorage.removeItem("user");
+          router.push("/auth/login/admin");
+        }
+      }
+    }
+  }, [mounted, checkAuth, router]);
+
+  // Initial setup
+  useEffect(() => {
+    if (mounted) {
+      fetchAdminCenter();
+    }
+  }, [mounted, fetchAdminCenter]);
 
   // Fetch courses data
   const fetchCourses = useCallback(async () => {
+    if (!mounted || !centerName || !checkAuth()) return;
+
     try {
       setLoading(true);
-      const token = localStorage.getItem("authToken");
+      setError("");
+      
+      const token = getAuthToken();
       if (!token) {
         router.push("/auth/login/admin");
         return;
       }
 
-      const decoded = parseJwt(token);
-      const isSuperAdmin = decoded?.role === "SUPER_ADMIN";
-      
-      let response;
-      
-      if (isSuperAdmin) {
-        // For SUPER_ADMIN, we need to specify center in the body
-        response = await axios.get(
-          "http://localhost:8000/api/marks/center-scores",
-          {
-            headers: {
-              token: token,
-            },
-            data: {
-              centerName: decoded?.centerName || "Patna" // Default center if not specified
-            }
-          }
-        );
-      } else {
-        // For ADMIN, center is derived from token
-        response = await axios.get(
-          "http://localhost:8000/api/marks/center-scores",
-          {
-            headers: {
-              token: token,
-            }
-          }
-        );
-      }
+      const response = await axios.get(
+        "http://localhost:8000/api/marks/center-scores",
+        {
+          headers: { token },
+          params: { centerName }
+        }
+      );
 
-      if (response.status === 401) {
-        localStorage.removeItem("authToken");
-        router.push("/auth/login/admin");
-        return;
-      }
-
-      const data = response.data;
-      setCourses(data.data || []);
+      setCourses(response.data.data || []);
     } catch (error: any) {
       console.error("Error fetching courses:", error);
-      setError(
-        error.response?.data?.message ||
+      
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 401) {
+          if (mounted) {
+            localStorage.removeItem("authToken");
+            localStorage.removeItem("user");
+            router.push("/auth/login/admin");
+          }
+          return;
+        }
+        
+        setError(
+          error.response?.data?.message ||
           error.message ||
           "Failed to load courses"
-      );
+        );
+      } else {
+        setError("An unexpected error occurred");
+      }
     } finally {
       setLoading(false);
     }
-  }, [router]);
+  }, [mounted, centerName, checkAuth, router]);
 
   useEffect(() => {
-    fetchCourses();
-  }, [fetchCourses, refreshTrigger]);
+    if (centerName) {
+      fetchCourses();
+    }
+  }, [centerName, fetchCourses, refreshTrigger]);
 
   // Update score handler
   const handleUpdateScore = async (updatedItem: any) => {
+    if (!mounted || !checkAuth()) return;
+
     try {
-      const token = localStorage.getItem("authToken");
+      const token = getAuthToken();
       if (!token) {
         router.push("/auth/login/admin");
+        return;
+      }
+
+      // Validate required fields
+      if (!updatedItem.scoreId) {
+        setError("Score ID is required for update");
         return;
       }
 
       const updateData = {
         scoreId: updatedItem.scoreId,
-        marksObtained: updatedItem.marksObtained,
-        totalObtained: updatedItem.totalObtained || 100,
+        marksObtained: Number(updatedItem.marksObtained) || 0,
+        totalObtained: Number(updatedItem.totalObtained) || 100,
         dateOfExam: updatedItem.dateOfExam || new Date().toISOString(),
         name: updatedItem.name || "Exam",
         scoreType: updatedItem.scoreType || "FINAL"
       };
 
-      const response = await axios.put(
+      await axios.put(
         "http://localhost:8000/api/marks/edit-score",
         updateData,
-        {
-          headers: {
-            token: token,
-          },
-        }
+        { headers: { token } }
       );
 
       // Refresh data after update
       setRefreshTrigger((prev) => prev + 1);
+      setError(""); // Clear any previous errors
     } catch (error: any) {
       console.error("Error updating score:", error);
-      if (error.response?.status === 401) {
-        localStorage.removeItem("authToken");
-        router.push("/auth/login/admin");
-        return;
-      }
-      setError(
-        error.response?.data?.message ||
+      
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 401) {
+          if (mounted) {
+            localStorage.removeItem("authToken");
+            localStorage.removeItem("user");
+            router.push("/auth/login/admin");
+          }
+          return;
+        }
+        
+        setError(
+          error.response?.data?.message ||
           error.message ||
           "Failed to update score"
-      );
+        );
+      } else {
+        setError("Failed to update score");
+      }
     }
   };
 
   // Delete score handler
   const handleDeleteScore = async (id: string) => {
+    if (!mounted || !checkAuth()) return;
+
+    if (!id) {
+      setError("Score ID is required for deletion");
+      return;
+    }
+
     try {
-      const token = localStorage.getItem("authToken");
+      const token = getAuthToken();
       if (!token) {
         router.push("/auth/login/admin");
         return;
       }
 
-      const response = await axios.delete(
+      await axios.delete(
         "http://localhost:8000/api/marks/delete-score",
         {
-          headers: {
-            token: token,
-          },
+          headers: { token },
           data: { scoreId: id }
         }
       );
 
       // Refresh data after delete
       setRefreshTrigger((prev) => prev + 1);
+      setError(""); // Clear any previous errors
     } catch (error: any) {
       console.error("Error deleting score:", error);
-      if (error.response?.status === 401) {
-        localStorage.removeItem("authToken");
-        router.push("/auth/login/admin");
-        return;
-      }
-      setError(
-        error.response?.data?.message ||
+      
+      if (axios.isAxiosError(error)) {
+        if (error.response?.status === 401) {
+          if (mounted) {
+            localStorage.removeItem("authToken");
+            localStorage.removeItem("user");
+            router.push("/auth/login/admin");
+          }
+          return;
+        }
+        
+        setError(
+          error.response?.data?.message ||
           error.message ||
           "Failed to delete score"
-      );
+        );
+      } else {
+        setError("Failed to delete score");
+      }
     }
   };
 
   // Trigger refresh after upload
-  const triggerRefresh = () => {
+  const triggerRefresh = useCallback(() => {
     setRefreshTrigger((prev) => prev + 1);
-  };
+  }, []);
 
-  const handleStudentClick = (course: Course, student: any) => {
-    setSelectedCourse(course);
-    setSelectedStudent(student);
+  const openScoresModal = useCallback((course: Course) => {
+    // Transform scores to always be an array
+    const transformedCourse = {
+      ...course,
+      students: course.students.map(student => ({
+        ...student,
+        scores: student.scores ? 
+          (Array.isArray(student.scores) ? student.scores : [student.scores]) 
+          : []
+      }))
+    };
+    setSelectedCourse(transformedCourse);
     setIsModalOpen(true);
-  };
+  }, []);
 
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
     setIsModalOpen(false);
-    setSelectedStudent(null);
     setSelectedCourse(null);
-  };
+  }, []);
+
+  // Don't render anything until mounted (prevents hydration issues)
+  if (!mounted) {
+    return <Shimmer />;
+  }
 
   if (loading) {
     return <Shimmer />;
@@ -243,7 +352,7 @@ export default function ResultManagement() {
             setError("");
             setRefreshTrigger((prev) => prev + 1);
           }}
-          className="mt-2 px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#122A4E]"
+          className="mt-2 px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#122A4E] transition-colors"
         >
           Retry
         </button>
@@ -257,22 +366,27 @@ export default function ResultManagement() {
   }, 0);
 
   // Transform course data for the table
-  const transformedCourses = courses.map(course => ({
+  const transformedCourses: TableCourse[] = courses.map(course => ({
     id: course.courseId,
     name: course.courseName,
     code: course.courseCode,
     credits: course.credits,
-    teachers: course.teachers.map(t => t.name).join(", "),
+    teachers: course.teachers?.map(t => t.name).join(", ") || "No teachers assigned",
     students: course.students?.length || 0,
     department: course.students?.[0]?.department || "N/A"
   }));
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between">
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">
+      <div className="flex justify-between items-center">
+        <h2 className="text-3xl font-bold text-gray-800">
           Result Management
         </h2>
+        {centerName && (
+          <p className="text-sm text-gray-600">
+            Center: <span className="font-medium">{centerName}</span>
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -314,21 +428,19 @@ export default function ResultManagement() {
         }}
         nonEditableFields={["id", "students"]}
         hiddenColumns={["id"]}
-        onEdit={handleUpdateScore}
-        onDelete={handleDeleteScore}
         customRenderers={{  
-          students: (value, row) => (
+          students: (row) => (
             <button 
               onClick={() => {
                 const fullCourse = courses.find(c => c.courseId === row.id);
                 if (fullCourse) {
-                  setSelectedCourse(fullCourse);
-                  setIsModalOpen(true);
+                  openScoresModal(fullCourse);
                 }
               }}
-              className="text-blue-600 hover:text-blue-800 font-medium"
+              className="text-blue-600 hover:text-blue-800 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded px-1"
+              disabled={row.students === 0}
             >
-              {value} students
+              {row.students} students
             </button>
           )
         }}
@@ -337,7 +449,6 @@ export default function ResultManagement() {
       {isModalOpen && selectedCourse && (
         <StudentScoresModal
           course={selectedCourse}
-          student={selectedStudent}
           onClose={closeModal}
           onUpdateScore={handleUpdateScore}
           onDeleteScore={handleDeleteScore}

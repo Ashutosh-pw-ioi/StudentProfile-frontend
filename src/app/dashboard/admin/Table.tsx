@@ -19,6 +19,10 @@ interface ColumnConfig {
   hidden?: boolean;
 }
 
+interface CustomRenderers {
+  [key: string]: (item: GenericTableItem) => React.ReactNode;
+}
+
 interface TableProps {
   data: GenericTableItem[];
   title?: string;
@@ -33,6 +37,7 @@ interface TableProps {
   badgeFields?: string[];
   selectFields?: Record<string, string[]>;
   nonEditableFields?: string[];
+  customRenderers?: CustomRenderers;
 }
 
 const Table: React.FC<TableProps> = ({
@@ -49,6 +54,7 @@ const Table: React.FC<TableProps> = ({
   badgeFields = [],
   selectFields = {},
   nonEditableFields = ["id"],
+  customRenderers,
 }) => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -68,7 +74,7 @@ const Table: React.FC<TableProps> = ({
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
-    }, 300); // 300ms debounce delay
+    }, 300);
 
     return () => {
       clearTimeout(handler);
@@ -544,43 +550,63 @@ const Table: React.FC<TableProps> = ({
                     {column.label}
                   </th>
                 ))}
-                <th className="text-left py-3 px-4 font-semibold text-gray-700 whitespace-nowrap">
-                  Actions
-                </th>
+                {(onEdit || onDelete) && (
+                  <th className="text-left py-3 px-4 font-semibold text-gray-700 whitespace-nowrap">
+                    Actions
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {paginatedRows.map((item) => (
                 <tr
-                  key={`${item.id}-${Math.random()}`}
+                  key={`item.id+${Math.random()}`}
                   className="hover:bg-gray-50"
                 >
-                  {columns.map((column) => (
-                    <td
-                      key={column.key}
-                      className="py-3 px-4 text-gray-600 whitespace-nowrap"
-                    >
-                      {renderCellContent(item, column)}
+                  {columns.map((column) => {
+                    if (customRenderers && customRenderers[column.key]) {
+                      return (
+                        <td
+                          key={column.key}
+                          className="py-3 px-4 text-gray-600 whitespace-nowrap"
+                        >
+                          {customRenderers[column.key](item)}
+                        </td>
+                      );
+                    }
+                    return (
+                      <td
+                        key={column.key}
+                        className="py-3 px-4 text-gray-600 whitespace-nowrap"
+                      >
+                        {renderCellContent(item, column)}
+                      </td>
+                    );
+                  })}
+                  {(onEdit || onDelete) && (
+                    <td className="py-3 px-4 whitespace-nowrap">
+                      <div className="flex space-x-2">
+                        {onEdit && (
+                          <button
+                            onClick={() => handleEditClick(item)}
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                            title="Edit"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                        )}
+                        {onDelete && (
+                          <button
+                            onClick={() => handleDeleteClick(item.id)}
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                            title="Delete"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        )}
+                      </div>
                     </td>
-                  ))}
-                  <td className="py-3 px-4 whitespace-nowrap">
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => handleEditClick(item)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                        title="Edit"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteClick(item.id)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                        title="Delete"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
+                  )}
                 </tr>
               ))}
             </tbody>

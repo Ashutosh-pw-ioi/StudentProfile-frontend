@@ -3,29 +3,41 @@
 import React, { useState } from "react";
 import { X, Edit, Trash2 } from "lucide-react";
 
+interface Score {
+  scoreId: string;
+  marksObtained: number;
+  totalObtained: number;
+  dateOfExam: string;
+  name: string;
+  scoreType: string;
+}
+
+interface Student {
+  studentId: string;
+  studentName: string;
+  email: string;
+  enrollmentNumber: string;
+  department: string;
+  center: string;
+  batch: string;
+  scores: Score[];
+}
+
+interface Course {
+  courseId: string;
+  courseName: string;
+  courseCode: string;
+  credits: number;
+  teachers: {
+    id: string;
+    name: string;
+    email: string;
+  }[];
+  students: Student[];
+}
+
 interface StudentScoresModalProps {
-  course: {
-    courseId: string;
-    courseName: string;
-    courseCode: string;
-    credits: number;
-    teachers: {
-      id: string;
-      name: string;
-      email: string;
-    }[];
-    students: {
-      studentId: string;
-      studentName: string;
-      email: string;
-      enrollmentNumber: string;
-      department: string;
-      center: string;
-      batch: string;
-      scores: any;
-    }[];
-  };
-  student?: any;
+  course: Course;
   onClose: () => void;
   onUpdateScore: (score: any) => void;
   onDeleteScore: (id: string) => void;
@@ -33,15 +45,14 @@ interface StudentScoresModalProps {
 
 export default function StudentScoresModal({
   course,
-  student,
   onClose,
   onUpdateScore,
   onDeleteScore
 }: StudentScoresModalProps) {
-  const [editingScore, setEditingScore] = useState<any>(null);
+  const [editingScore, setEditingScore] = useState<Score | null>(null);
   const [editMode, setEditMode] = useState(false);
 
-  const handleEditClick = (score: any) => {
+  const handleEditClick = (score: Score) => {
     setEditingScore({ ...score });
     setEditMode(true);
   };
@@ -67,14 +78,12 @@ export default function StudentScoresModal({
     });
   };
 
-  const studentsToShow = student ? [student] : course.students;
-
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-lg p-6 w-full max-w-6xl max-h-[90vh] overflow-y-auto">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-xl font-bold text-gray-800">
-            {student ? `${student.studentName}'s Scores` : `${course.courseName} (${course.courseCode}) - Students`}
+            {course.courseName} ({course.courseCode}) - Student Scores
           </h3>
           <button 
             onClick={onClose}
@@ -96,7 +105,7 @@ export default function StudentScoresModal({
           </p>
         </div>
 
-        {editMode && editingScore ? (
+        {editMode && editingScore && (
           <div className="bg-gray-50 p-4 rounded-lg mb-6">
             <h4 className="text-lg font-semibold mb-3">Edit Score</h4>
             <form onSubmit={handleEditSubmit}>
@@ -187,7 +196,7 @@ export default function StudentScoresModal({
               </div>
             </form>
           </div>
-        ) : null}
+        )}
 
         <div className="overflow-x-auto">
           <table className="min-w-full divide-y divide-gray-200">
@@ -205,139 +214,103 @@ export default function StudentScoresModal({
                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Batch
                 </th>
-                {student && (
-                  <>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Test Name
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Score Type
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Marks
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Date
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </>
-                )}
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Test Name
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Score Type
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Marks
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Date
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Actions
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {studentsToShow.map((stud) => (
-                <React.Fragment key={stud.studentId}>
-                  {!student || !stud.scores ? (
-                    <tr>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-gray-900">
-                          {stud.studentName}
+              {course.students.map((student) => (
+                student.scores.length > 0 ? (
+                  student.scores.map((score, index) => (
+                    <tr key={`${student.studentId}-${index}`}>
+                      {index === 0 ? (
+                        <>
+                          <td className="px-6 py-4 whitespace-nowrap" rowSpan={student.scores.length}>
+                            <div className="text-sm font-medium text-gray-900">
+                              {student.studentName}
+                            </div>
+                            <div className="text-sm text-gray-500">
+                              {student.email}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500" rowSpan={student.scores.length}>
+                            {student.enrollmentNumber}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500" rowSpan={student.scores.length}>
+                            {student.department}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500" rowSpan={student.scores.length}>
+                            {student.batch}
+                          </td>
+                        </>
+                      ) : null}
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {score.name}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {score.scoreType}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {score.marksObtained} / {score.totalObtained}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {new Date(score.dateOfExam).toLocaleDateString()}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                        <div className="flex space-x-2">
+                          <button
+                            onClick={() => handleEditClick(score)}
+                            className="text-blue-600 hover:text-blue-900"
+                          >
+                            <Edit className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => onDeleteScore(score.scoreId)}
+                            className="text-red-600 hover:text-red-900"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
                         </div>
-                        <div className="text-sm text-gray-500">
-                          {stud.email}
-                        </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {stud.enrollmentNumber}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {stud.department}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {stud.batch}
-                      </td>
-                      {student && (
-                        <td colSpan={5} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
-                          No scores recorded yet
-                        </td>
-                      )}
                     </tr>
-                  ) : (
-                    <>
-                      {student ? (
-                        <tr key={stud.scores.scoreId}>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900">
-                              {stud.studentName}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              {stud.email}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {stud.enrollmentNumber}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {stud.department}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {stud.batch}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {stud.scores.name}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {stud.scores.scoreType}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {stud.scores.marksObtained} / {stud.scores.totalObtained}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {new Date(stud.scores.dateOfExam).toLocaleDateString()}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                            <div className="flex space-x-2">
-                              <button
-                                onClick={() => handleEditClick(stud.scores)}
-                                className="text-blue-600 hover:text-blue-900"
-                              >
-                                <Edit className="w-4 h-4" />
-                              </button>
-                              <button
-                                onClick={() => onDeleteScore(stud.scores.scoreId)}
-                                className="text-red-600 hover:text-red-900"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </div>
-                          </td>
-                        </tr>
-                      ) : (
-                        <tr key={stud.studentId}>
-                          <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="text-sm font-medium text-gray-900">
-                              {stud.studentName}
-                            </div>
-                            <div className="text-sm text-gray-500">
-                              {stud.email}
-                            </div>
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {stud.enrollmentNumber}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {stud.department}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {stud.batch}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                            {stud.scores ? (
-                              <button
-                                onClick={() => handleEditClick(stud.scores)}
-                                className="text-blue-600 hover:text-blue-900"
-                              >
-                                View Scores
-                              </button>
-                            ) : 'No scores'}
-                          </td>
-                        </tr>
-                      )}
-                    </>
-                  )}
-                </React.Fragment>
+                  ))
+                ) : (
+                  <tr key={student.studentId}>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div className="text-sm font-medium text-gray-900">
+                        {student.studentName}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {student.email}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {student.enrollmentNumber}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {student.department}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      {student.batch}
+                    </td>
+                    <td colSpan={5} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-center">
+                      No scores recorded
+                    </td>
+                  </tr>
+                )
               ))}
             </tbody>
           </table>

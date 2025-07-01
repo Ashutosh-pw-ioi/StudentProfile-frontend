@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Users, Plus } from "lucide-react";
 import Table from "../Table";
 import { useRouter } from "next/navigation";
@@ -55,6 +55,25 @@ interface TableBatch {
   teachersFull: Teacher[];
 }
 
+interface AdminData {
+  id: string;
+  name: string;
+  email: string;
+  center: {
+    id: string;
+    name: string;
+    location: string;
+    createdAt: string;
+    updatedAt: string;
+  };
+}
+
+interface User {
+  id: string;
+  email: string;
+  role: string;
+}
+
 export default function BatchManagement() {
   const [batches, setBatches] = useState<TableBatch[]>([]);
   const [batchesFull, setBatchesFull] = useState<Batch[]>([]);
@@ -76,114 +95,142 @@ export default function BatchManagement() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [userCenter, setUserCenter] = useState("");
   const [userRole, setUserRole] = useState("");
-  const [userInfoLoaded, setUserInfoLoaded] = useState(false);
+  const [adminId, setAdminId] = useState("");
 
-  // Check authentication and get user info
   useEffect(() => {
     const token = localStorage.getItem("authToken");
-    if (!token) {
+    const user = localStorage.getItem("user");
+
+    if (!token || !user) {
       router.push("/auth/login/admin");
       return;
     }
 
     try {
-      const tokenPayload = JSON.parse(atob(token.split(".")[1]));
-      const center = tokenPayload.center || "";
-      const role = tokenPayload.role || "";
-
-      setUserCenter(center);
-      setUserRole(role);
-      setFormData((prev) => ({ ...prev, centerName: center }));
-      setUserInfoLoaded(true);
+      const userData: User = JSON.parse(user);
+      if (userData.role === "ADMIN" && userData.id) {
+        setAdminId(userData.id);
+        setUserRole(userData.role);
+      } else {
+        throw new Error("Invalid user data");
+      }
     } catch (error) {
-      console.error("Error parsing token:", error);
-      localStorage.removeItem("authToken");
+      console.error("Error parsing user data:", error);
       router.push("/auth/login/admin");
     }
   }, [router]);
 
-  // Fetch batches data when user info is available
-  useEffect(() => {
-    if (!userInfoLoaded) return;
+  const fetchAdminDetails = useCallback(async () => {
+    if (!adminId) return;
 
-    const fetchBatches = async () => {
-      try {
-        setLoading(true);
-        setError("");
+    try {
+      const token = localStorage.getItem("authToken");
+      const response = await axios.post<{ success: boolean; data: AdminData }>(
+        "http://localhost:8000/api/admin/get",
+        { id: adminId },
+        { headers: { token } }
+      );
 
-        const token = localStorage.getItem("authToken");
-        if (!token) {
-          router.push("/auth/login/admin");
-          return;
-        }
+      if (response.data.success) {
+        const adminData = response.data.data;
+        setUserCenter(adminData.center.name);
+        setFormData(prev => ({
+          ...prev,
+          centerName: adminData.center.name
+        }));
+      }
+    } catch (error) {
+      console.error("Error fetching admin details:", error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("user");
+        router.push("/auth/login/admin");
+      }
+    }
+  }, [adminId, router]);
 
-        const config: any = {
-          method: "GET",
-          url: "http://localhost:8000/api/batch/all",
-          headers: { token },
-        };
+  const fetchBatches = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError("");
 
-        if (userRole === "SUPER_ADMIN" && userCenter) {
-          config.method = "POST";
-          config.data = { centerName: userCenter };
-        }
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        router.push("/auth/login/admin");
+        return;
+      }
 
-        const response = await axios.request<FullBatchData>(config);
+      const config: any = {
+        method: "GET",
+        url: "http://localhost:8000/api/batch/all",
+        headers: { token },
+      };
 
-        if (!response.data.success) {
-          throw new Error("API returned unsuccessful response");
-        }
+      if (userRole === "SUPER_ADMIN" && userCenter) {
+        config.method = "POST";
+        config.data = { centerName: userCenter };
+      }
 
-        const data = response.data;
-        const allBatches: Batch[] = [];
+      const response = await axios.request<FullBatchData>(config);
 
-        data.data.departments.forEach((department) => {
-          department.batches.forEach((batch) => {
-            allBatches.push({
-              ...batch,
-              departmentName: department.departmentName,
-              centerName: data.data.center,
-            });
+      if (!response.data.success) {
+        throw new Error("API returned unsuccessful response");
+      }
+
+      const data = response.data;
+      const allBatches: Batch[] = [];
+
+      data.data.departments.forEach((department) => {
+        department.batches.forEach((batch) => {
+          allBatches.push({
+            ...batch,
+            departmentName: department.departmentName,
+            centerName: data.data.center,
           });
         });
+      });
 
-        setBatchesFull(allBatches);
+      setBatchesFull(allBatches);
 
-        const transformedData: TableBatch[] = allBatches.map((batch) => ({
-          id: batch.batchId,
-          name: batch.batchName,
-          department: batch.departmentName || "",
-          center: batch.centerName || "",
-          students: batch.students?.length || 0,
-          teachers: batch.teachers?.length || "No teachers",
-          teachersFull: batch.teachers || [],
-          studentsFull: batch.students || [],
-        }));
+      const transformedData: TableBatch[] = allBatches.map((batch) => ({
+        id: batch.batchId,
+        name: batch.batchName,
+        department: batch.departmentName || "",
+        center: batch.centerName || "",
+        students: batch.students?.length || 0,
+        teachers: batch.teachers?.length || "No teachers",
+        teachersFull: batch.teachers || [],
+        studentsFull: batch.students || [],
+      }));
 
-        setBatches(transformedData);
-      } catch (error: any) {
-        console.error("Error fetching batches:", error);
+      setBatches(transformedData);
+    } catch (error: any) {
+      console.error("Error fetching batches:", error);
 
-        if (error.response?.status === 401) {
-          localStorage.removeItem("authToken");
-          router.push("/auth/login/admin");
-          return;
-        }
-
-        const errorMessage =
-          error.response?.data?.message ||
-          error.message ||
-          "Failed to load batches";
-        setError(errorMessage);
-      } finally {
-        setLoading(false);
+      if (error.response?.status === 401) {
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("user");
+        router.push("/auth/login/admin");
+        return;
       }
-    };
 
-    fetchBatches();
-  }, [userCenter, userRole, refreshTrigger, router, userInfoLoaded]);
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to load batches";
+      setError(errorMessage);
+    } finally {
+      setLoading(false);
+    }
+  }, [userCenter, userRole, router]);
 
-  // Update batch handler
+  useEffect(() => {
+    if (adminId) {
+      fetchAdminDetails();
+      fetchBatches();
+    }
+  }, [adminId, fetchAdminDetails, fetchBatches, refreshTrigger]);
+
   const handleUpdateBatch = async (updatedItem: TableBatch) => {
     try {
       const token = localStorage.getItem("authToken");
@@ -211,6 +258,7 @@ export default function BatchManagement() {
 
       if (error.response?.status === 401) {
         localStorage.removeItem("authToken");
+        localStorage.removeItem("user");
         router.push("/auth/login/admin");
         return;
       }
@@ -223,7 +271,6 @@ export default function BatchManagement() {
     }
   };
 
-  // Delete batch handler
   const handleDeleteBatch = async (id: string) => {
     if (!window.confirm("Are you sure you want to delete this batch?")) {
       return;
@@ -252,6 +299,7 @@ export default function BatchManagement() {
 
       if (error.response?.status === 401) {
         localStorage.removeItem("authToken");
+        localStorage.removeItem("user");
         router.push("/auth/login/admin");
         return;
       }
@@ -264,19 +312,16 @@ export default function BatchManagement() {
     }
   };
 
-  // Open students modal
   const openStudentsModal = (students: Student[]) => {
     setCurrentStudents(students);
     setStudentsModalOpen(true);
   };
 
-  // Open teachers modal
   const openTeachersModal = (teachers: Teacher[]) => {
     setCurrentTeachers(teachers);
     setTeachersModalOpen(true);
   };
 
-  // Handle form input changes
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
@@ -292,7 +337,6 @@ export default function BatchManagement() {
     }
   };
 
-  // Validate form
   const validateForm = () => {
     const errors: Record<string, string> = {};
 
@@ -308,7 +352,6 @@ export default function BatchManagement() {
     return Object.keys(errors).length === 0;
   };
 
-  // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -350,6 +393,7 @@ export default function BatchManagement() {
 
       if (error.response?.status === 401) {
         localStorage.removeItem("authToken");
+        localStorage.removeItem("user");
         router.push("/auth/login/admin");
         return;
       }
@@ -364,7 +408,6 @@ export default function BatchManagement() {
     }
   };
 
-  // Reset form when modal opens
   const handleOpenAddModal = () => {
     setFormData({
       centerName: userCenter,
@@ -375,12 +418,10 @@ export default function BatchManagement() {
     setIsAddBatchModalOpen(true);
   };
 
-  // Loading state
   if (loading) {
     return <Shimmer />;
   }
 
-  // Error state
   if (error) {
     return (
       <div className="bg-red-50 text-red-600 p-4 rounded-lg max-w-2xl mx-auto mt-8">
@@ -525,7 +566,7 @@ export default function BatchManagement() {
 
             <form onSubmit={handleSubmit}>
               <div className="space-y-4">
-                {/* Center Name (readonly for admin) */}
+                {/* Center Name */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Center
