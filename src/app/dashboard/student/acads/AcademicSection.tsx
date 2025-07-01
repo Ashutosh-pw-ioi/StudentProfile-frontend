@@ -106,11 +106,13 @@ interface CategoryData {
 }
 
 interface Student {
+  id: string;
   rank: number;
   name: string;
   percentage: number;
   avatar: string;
   location: string;
+  isCurrentUser?: boolean;
 }
 
 export default function AcademicsSection() {
@@ -125,7 +127,6 @@ export default function AcademicsSection() {
   const [departmentLeaderboard, setDepartmentLeaderboard] = useState<any>(null);
   const [studentProfile, setStudentProfile] = useState<any>(null);
 
-  // UI states
   const [showAllGrades, setShowAllGrades] = useState(false);
   const [selectedSubject, setSelectedSubject] = useState<string | null>(null);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -213,34 +214,76 @@ export default function AcademicsSection() {
     ];
   };
 
-  // Get top students from batch leaderboard
+  // Get top students from batch leaderboard including current user
   const getBatchTopStudents = (): Student[] => {
     if (!batchLeaderboard?.students) return [];
-
-    return batchLeaderboard.students
+    
+    const topStudents = batchLeaderboard.students
       .slice(0, 3)
       .map((student: BatchLeaderboardStudent) => ({
+        id: student.id,
         rank: student.rank,
         name: student.name,
         percentage: student.totalMarks,
         avatar: generateAvatar(student.name),
         location: batchLeaderboard.center?.name || "Unknown",
+        isCurrentUser: student.id === studentProfile?.id
       }));
+
+    // Add current user if not in top 3
+    const currentUser = batchLeaderboard.students.find(
+      (s: BatchLeaderboardStudent) => s.id === studentProfile?.id
+    );
+    
+    if (currentUser && !topStudents.some(s => s.id === currentUser.id)) {
+      topStudents.push({
+        id: currentUser.id,
+        rank: currentUser.rank,
+        name: currentUser.name,
+        percentage: currentUser.totalMarks,
+        avatar: generateAvatar(currentUser.name),
+        location: batchLeaderboard.center?.name || "Unknown",
+        isCurrentUser: true
+      });
+    }
+
+    return topStudents;
   };
 
-  // Get top students from department leaderboard
+  // Get top students from department leaderboard including current user
   const getDepartmentTopStudents = (): Student[] => {
     if (!departmentLeaderboard?.students) return [];
-
-    return departmentLeaderboard.students
+    
+    const topStudents = departmentLeaderboard.students
       .slice(0, 3)
       .map((student: DepartmentLeaderboardStudent) => ({
+        id: student.id,
         rank: student.rank,
         name: student.name,
         percentage: student.totalMarks,
         avatar: generateAvatar(student.name),
         location: student.center?.name || "Unknown",
+        isCurrentUser: student.id === studentProfile?.id
       }));
+
+    // Add current user if not in top 3
+    const currentUser = departmentLeaderboard.students.find(
+      (s: DepartmentLeaderboardStudent) => s.id === studentProfile?.id
+    );
+    
+    if (currentUser && !topStudents.some(s => s.id === currentUser.id)) {
+      topStudents.push({
+        id: currentUser.id,
+        rank: currentUser.rank,
+        name: currentUser.name,
+        percentage: currentUser.totalMarks,
+        avatar: generateAvatar(currentUser.name),
+        location: currentUser.center?.name || "Unknown",
+        isCurrentUser: true
+      });
+    }
+
+    return topStudents;
   };
 
   // Get all students for leaderboard modal
@@ -253,6 +296,7 @@ export default function AcademicsSection() {
     if (!students) return [];
 
     return students.map((student: any) => ({
+      id: student.id,
       rank: student.rank,
       name: student.name,
       percentage: student.totalMarks,
@@ -261,6 +305,7 @@ export default function AcademicsSection() {
         leaderboardType === "batch"
           ? batchLeaderboard.center?.name || "Unknown"
           : student.center?.name || "Unknown",
+      isCurrentUser: student.id === studentProfile?.id
     }));
   };
 
@@ -766,12 +811,14 @@ export default function AcademicsSection() {
                 <div
                   key={student.rank}
                   className={`flex items-center gap-3 p-3 rounded-lg ${
-                    index === 0
+                    student.isCurrentUser
+                      ? "bg-blue-100 border border-blue-300"
+                      : index === 0
                       ? "bg-yellow-50 border border-yellow-200"
                       : index === 1
                       ? "bg-gray-50 border border-gray-200"
                       : "bg-amber-50 border border-amber-200"
-                  }`}
+                  } ${student.isCurrentUser ? "ring-2 ring-blue-400" : ""}`}
                 >
                   <div className="flex items-center justify-center">
                     {getRankIcon(student.rank)}
@@ -791,6 +838,11 @@ export default function AcademicsSection() {
                       {student.percentage} marks
                     </p>
                   </div>
+                  {student.isCurrentUser && (
+                    <div className="px-2 py-1 bg-blue-500 text-white text-xs rounded-full">
+                      You
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -819,12 +871,14 @@ export default function AcademicsSection() {
                 <div
                   key={student.rank}
                   className={`flex items-center gap-3 p-3 rounded-lg ${
-                    index === 0
+                    student.isCurrentUser
+                      ? "bg-blue-100 border border-blue-300"
+                      : index === 0
                       ? "bg-yellow-50 border border-yellow-200"
                       : index === 1
                       ? "bg-gray-50 border border-gray-200"
                       : "bg-amber-50 border border-amber-200"
-                  }`}
+                  } ${student.isCurrentUser ? "ring-2 ring-blue-400" : ""}`}
                 >
                   <div className="flex items-center justify-center">
                     {getRankIcon(student.rank)}
@@ -846,6 +900,11 @@ export default function AcademicsSection() {
                       {student.percentage} marks
                     </p>
                   </div>
+                  {student.isCurrentUser && (
+                    <div className="px-2 py-1 bg-blue-500 text-white text-xs rounded-full">
+                      You
+                    </div>
+                  )}
                 </div>
               ))}
             </div>
@@ -1177,12 +1236,12 @@ export default function AcademicsSection() {
 
             <div className="p-6 overflow-y-auto max-h-96">
               <div className="space-y-3">
-                {getAllStudents().map((student, index) => (
+                {getAllStudents().map((student) => (
                   <div
                     key={student.rank}
                     className={`flex items-center gap-4 p-4 rounded-lg border ${
-                      index < 3
-                        ? "bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200"
+                      student.isCurrentUser
+                        ? "bg-blue-100 border-blue-300 ring-2 ring-blue-400"
                         : "bg-gray-50 border-gray-200"
                     } hover:shadow-md transition-shadow duration-200`}
                   >
@@ -1208,8 +1267,13 @@ export default function AcademicsSection() {
                       <p className="text-xl font-bold text-gray-800">
                         {student.percentage} marks
                       </p>
-                      <p className="text-xs text-gray-500">Performance</p>
+                      <p className="text-xs text-gray-500">Rank: {student.rank}</p>
                     </div>
+                    {student.isCurrentUser && (
+                      <div className="px-2 py-1 bg-blue-500 text-white text-xs rounded-full">
+                        You
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

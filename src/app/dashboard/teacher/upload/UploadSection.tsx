@@ -8,6 +8,7 @@ import {
   CheckCircle,
   AlertCircle,
   X,
+  Download,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -19,16 +20,16 @@ export default function UploadSection() {
   );
   const [showSchemaHelp, setShowSchemaHelp] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [tokenPresent,setTokenPresent]=useState(false);
-  const router = useRouter()
+  const [tokenPresent, setTokenPresent] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
-      const token = localStorage.getItem('authToken');
-      setTokenPresent(!!token);
-      if (!token) {
-        router.push('/auth/login/student');
-      }
-    }, [router]);
+    const token = localStorage.getItem("authToken");
+    setTokenPresent(!!token);
+    if (!token) {
+      router.push("/auth/login/student");
+    }
+  }, [router]);
 
   const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -91,7 +92,17 @@ export default function UploadSection() {
     }
   };
 
-  if(!tokenPresent){
+
+  const downloadSampleFile = () => {
+    const link = document.createElement("a");
+    link.href = "https://glqns72ea6.ufs.sh/f/35ZKzNsv5By61oPdNSQHWyStvbcNAs0uUq6hILf7wZlnmxj8"
+    link.download = "sample_test_data.xlsx";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  if (!tokenPresent) {
     return null;
   }
 
@@ -360,7 +371,7 @@ export default function UploadSection() {
           )}
         </div>
 
-        <div className="mt-8 grid md:grid-cols-2 gap-6">
+        <div className="mt-8 grid md:grid-cols-3 gap-6">
           <div className="text-center p-4">
             <div className="w-12 h-12 bg-[#D4E3F5] rounded-lg flex items-center justify-center mx-auto mb-3">
               <FileSpreadsheet className="text-[1B3A6A]" size={24} />
@@ -368,6 +379,18 @@ export default function UploadSection() {
             <h4 className="font-semibold text-gray-800 mb-2">XLS/XLSX Only</h4>
             <p className="text-sm text-gray-600">
               We support Excel files in .xls and .xlsx formats
+            </p>
+          </div>
+          <div 
+            onClick={downloadSampleFile} 
+            className="text-center p-4 cursor-pointer hover:bg-gray-50 rounded-lg transition-colors"
+          >
+            <div className="w-12 h-12 bg-[#1B3A6A] rounded-lg flex items-center justify-center mx-auto mb-3">
+              <Download className="text-[#D9A864]" size={24} />
+            </div>
+            <h4 className="font-semibold text-gray-800 mb-2">Download Sample</h4>
+            <p className="text-sm text-gray-600">
+              Click  Here to see the excel file format
             </p>
           </div>
 
