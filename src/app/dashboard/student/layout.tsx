@@ -1,15 +1,8 @@
-'use client';
+"use client";
 
 import React, { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  User,
-  GraduationCap,
-  HelpCircle,
-  LogOut,
-  Menu,
-  X,
-} from "lucide-react";
+import { User, GraduationCap, HelpCircle, LogOut, Menu, X } from "lucide-react";
 
 const StudentLayout = ({ children }: { children: React.ReactNode }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -17,18 +10,27 @@ const StudentLayout = ({ children }: { children: React.ReactNode }) => {
   const [tokenPresent, setTokenPresent] = useState(false);
   const router = useRouter();
   useEffect(() => {
-    const token = localStorage.getItem('authToken');
+    const token = localStorage.getItem("authToken");
     setTokenPresent(!!token);
     if (!token) {
-      router.push('/auth/login/student');
+      router.push("/auth/login/student");
     }
   }, [router]);
 
-
   const menuItems = [
     { id: "profile", label: "Profile", icon: User, href: "/dashboard/student" },
-    { id: "academics", label: "Academics & Course", icon: GraduationCap, href: "/dashboard/student/acads" },
-    { id: "help", label: "Help", icon: HelpCircle, href: "/dashboard/student/help" },
+    {
+      id: "academics",
+      label: "Academics & Course",
+      icon: GraduationCap,
+      href: "/dashboard/student/acads",
+    },
+    {
+      id: "help",
+      label: "Help",
+      icon: HelpCircle,
+      href: "/dashboard/student/help",
+    },
   ];
 
   const getActiveSection = () => {
@@ -36,7 +38,7 @@ const StudentLayout = ({ children }: { children: React.ReactNode }) => {
     if (pathname.includes("/help")) return "help";
     return "profile";
   };
-  
+
   const activeSection = getActiveSection();
 
   useEffect(() => {
@@ -72,14 +74,12 @@ const StudentLayout = ({ children }: { children: React.ReactNode }) => {
   }, [isMobileMenuOpen]);
 
   const handleLogout = () => {
-    console.log('Logout clicked');
-    
-    setTimeout(() => {
-        router.push('/auth/login/student');
-    }, 2000);
-  }
+    console.log("Logout clicked");
+
+    router.push("/auth/login/student");
+  };
   if (!tokenPresent) {
-    return null
+    return null;
   }
 
   return (
@@ -90,7 +90,11 @@ const StudentLayout = ({ children }: { children: React.ReactNode }) => {
         className="lg:hidden fixed top-4 right-4 z-50 p-2 bg-[#1B3A6A] text-white rounded-lg shadow-lg hover:bg-[#2A4A7A] transition-colors duration-200 md:mr-2 scale-[0.8] md:scale-[1] mt-1 md:mt-0"
         aria-label="Toggle menu"
       >
-        {isMobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+        {isMobileMenuOpen ? (
+          <X className="w-6 h-6" />
+        ) : (
+          <Menu className="w-6 h-6" />
+        )}
       </button>
 
       {isMobileMenuOpen && (
@@ -105,9 +109,12 @@ const StudentLayout = ({ children }: { children: React.ReactNode }) => {
         className={`fixed lg:sticky inset-y-0 right-0 lg:left-0 z-40 w-64 h-screen 
           bg-[#1B3A6A] backdrop-blur-md border-l lg:border-l-0 lg:border-r border-white/20 
           flex flex-col text-white transition-transform duration-300 ease-in-out
-          ${isMobileMenuOpen ? "translate-x-0" : "translate-x-full lg:translate-x-0"}`}
+          ${
+            isMobileMenuOpen
+              ? "translate-x-0"
+              : "translate-x-full lg:translate-x-0"
+          }`}
       >
-
         <div className="p-6 border-b border-white/20 bg-[#D9A864] md:bg-transparent mb-4 md:mb-0">
           <img src="/PWIOILogo.webp" className="w-40" />
         </div>
@@ -123,9 +130,10 @@ const StudentLayout = ({ children }: { children: React.ReactNode }) => {
                 href={item.href}
                 className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg 
                   transition-all duration-200 ease-in-out cursor-pointer
-                  ${isActive
-                    ? "bg-[#D9A864] text-black shadow-lg transform scale-[1.01]"
-                    : "text-white hover:bg-[#7695CD] hover:transform hover:scale-[1.01]"
+                  ${
+                    isActive
+                      ? "bg-[#D9A864] text-black shadow-lg transform scale-[1.01]"
+                      : "text-white hover:bg-[#7695CD] hover:transform hover:scale-[1.01]"
                   }`}
               >
                 <Icon className="w-5 h-5 flex-shrink-0" />
@@ -136,16 +144,17 @@ const StudentLayout = ({ children }: { children: React.ReactNode }) => {
         </nav>
 
         <div className="p-4 border-t border-white/20">
-          <button className="w-full flex items-center space-x-3 bg-[#D9A864] text-gray-800 py-3 px-4 hover:bg-[#f3c17a] rounded-lg transition-all duration-200 ease-in-out cursor-pointer font-semibold hover:transform hover:scale-[1.01]" onClick={handleLogout}>
-            <LogOut className="w-4 h-4 flex-shrink-0"  />
+          <button
+            className="w-full flex items-center space-x-3 bg-[#D9A864] text-gray-800 py-3 px-4 hover:bg-[#f3c17a] rounded-lg transition-all duration-200 ease-in-out cursor-pointer font-semibold hover:transform hover:scale-[1.01]"
+            onClick={handleLogout}
+          >
+            <LogOut className="w-4 h-4 flex-shrink-0" />
             <span>Log out</span>
           </button>
         </div>
       </div>
 
-      <div className="flex-1 p-6 bg-[#FFE4B8] lg:ml-0">
-        {children}
-      </div>
+      <div className="flex-1 p-6 bg-[#FFE4B8] lg:ml-0">{children}</div>
     </div>
   );
 };
