@@ -1,14 +1,14 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { Edit, Filter, Search, Trash2 } from "lucide-react";
+import { Edit, Filter, Search, Trash2, X } from "lucide-react";
 
 interface GenericTableItem {
   id: number | string;
   [key: string]: any;
 }
 
-interface ColumnConfig{
+interface ColumnConfig {
   key: string;
   label: string;
   type?: "text" | "number" | "email" | "select" | "badge";
@@ -52,8 +52,12 @@ const Table: React.FC<TableProps> = ({
 }) => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [editingField, setEditingField] = useState<GenericTableItem | null>(null);
-  const [fieldToDelete, setFieldToDelete] = useState<number | string | null>(null);
+  const [editingField, setEditingField] = useState<GenericTableItem | null>(
+    null
+  );
+  const [fieldToDelete, setFieldToDelete] = useState<number | string | null>(
+    null
+  );
   const [selectedFilter, setSelectedFilter] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
@@ -150,12 +154,20 @@ const Table: React.FC<TableProps> = ({
         !debouncedSearchTerm ||
         searchableColumns.some((col) => {
           const value = item[col.key];
-          return String(value).toLowerCase().includes(debouncedSearchTerm.toLowerCase());
+          return String(value)
+            .toLowerCase()
+            .includes(debouncedSearchTerm.toLowerCase());
         });
 
       return matchesFilter && matchesSearch;
     });
-  }, [listData, filterField, selectedFilter, debouncedSearchTerm, searchableColumns]);
+  }, [
+    listData,
+    filterField,
+    selectedFilter,
+    debouncedSearchTerm,
+    searchableColumns,
+  ]);
 
   const totalPages = Math.ceil(filteredList.length / rowsPerPage);
   const paginatedRows = filteredList.slice(
@@ -261,6 +273,16 @@ const Table: React.FC<TableProps> = ({
     });
   };
 
+  const closeEditModal = () => {
+    setEditModalOpen(false);
+    setEditingField(null);
+  };
+
+  const closeDeleteModal = () => {
+    setDeleteModalOpen(false);
+    setFieldToDelete(null);
+  };
+
   const renderCellContent = (item: GenericTableItem, column: ColumnConfig) => {
     const value = item[column.key];
 
@@ -360,35 +382,53 @@ const Table: React.FC<TableProps> = ({
   }
 
   return (
-    <div className="bg-white/80 shadow-lg rounded-lg overflow-x-scroll">
+    <div className="bg-white/80 shadow-lg rounded-lg overflow-hidden">
+      {/* Edit Modal */}
       {editModalOpen && editingField && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50 p-4 shadow-2xl">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full max-h-[80vh] overflow-y-auto">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">
-              Edit Record
-            </h3>
-            <form onSubmit={handleEditSubmit}>
-              <div className="space-y-4 mb-6">
-                {columns.map((column) => (
-                  <div key={column.key}>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      {column.label}
-                    </label>
-                    {renderEditField(column, editingField[column.key])}
-                  </div>
-                ))}
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] flex flex-col shadow-2xl">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h3 className="text-xl font-bold text-gray-800">Edit Record</h3>
+              <button
+                onClick={closeEditModal}
+                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                title="Close"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+
+            {/* Modal Content - Scrollable */}
+            <form
+              onSubmit={handleEditSubmit}
+              className="flex flex-col flex-1 min-h-0"
+            >
+              <div className="flex-1 overflow-y-auto p-6">
+                <div className="space-y-4">
+                  {columns.map((column) => (
+                    <div key={column.key}>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        {column.label}
+                      </label>
+                      {renderEditField(column, editingField[column.key])}
+                    </div>
+                  ))}
+                </div>
               </div>
-              <div className="flex justify-end space-x-4">
+
+              {/* Modal Footer - Fixed at bottom */}
+              <div className="flex justify-end space-x-4 p-6 border-t border-gray-200 bg-gray-50">
                 <button
                   type="button"
-                  onClick={() => setEditModalOpen(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700"
+                  onClick={closeEditModal}
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#122A4E]"
+                  className="px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#122A4E] transition-colors"
                 >
                   Save Changes
                 </button>
@@ -398,26 +438,43 @@ const Table: React.FC<TableProps> = ({
         </div>
       )}
 
+      {/* Delete Modal */}
       {deleteModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50 p-4 shadow-2xl">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">
-              Confirm Delete
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Are you sure you want to delete this record? This action cannot be
-              undone.
-            </p>
-            <div className="flex justify-end space-x-4">
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg max-w-md w-full shadow-2xl">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between p-6 border-b border-gray-200">
+              <h3 className="text-xl font-bold text-gray-800">
+                Confirm Delete
+              </h3>
               <button
-                onClick={() => setDeleteModalOpen(false)}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50"
+                onClick={closeDeleteModal}
+                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
+                title="Close"
+              >
+                <X className="w-5 h-5 text-gray-500" />
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-6">
+              <p className="text-gray-600 mb-6">
+                Are you sure you want to delete this record? This action cannot
+                be undone.
+              </p>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex justify-end space-x-4 p-6 border-t border-gray-200 bg-gray-50">
+              <button
+                onClick={closeDeleteModal}
+                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmDelete}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700"
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
               >
                 Delete
               </button>
@@ -426,11 +483,11 @@ const Table: React.FC<TableProps> = ({
         </div>
       )}
 
-      <div className="p-6 px-4">
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6 px-4">
+      <div className="p-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
           <h4 className="text-xl font-bold text-gray-800">{title}</h4>
 
-          <div className="flex flex-col md:flex-row gap-4">
+          <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4" />
               <input
@@ -438,12 +495,12 @@ const Table: React.FC<TableProps> = ({
                 placeholder={searchPlaceholder}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg"
+                className="pl-10 pr-4 py-2 border border-gray-300 rounded-lg w-full sm:w-auto"
               />
             </div>
 
             {filterField && filterOptions.length > 0 && (
-              <div className="relative w-48">
+              <div className="relative w-full sm:w-48">
                 <Filter className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 w-4 h-4 pointer-events-none" />
                 <select
                   value={selectedFilter}
@@ -475,42 +532,50 @@ const Table: React.FC<TableProps> = ({
           </div>
         </div>
 
-        <div className=" overflow-x-scroll">
-          <table>
-            <thead>
-              <tr className="border-b border-gray-200">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-full table-auto">
+            <thead className="bg-gray-50">
+              <tr>
                 {columns.map((column) => (
                   <th
                     key={column.key}
-                    className="text-left py-3 px-4 font-semibold text-gray-700"
+                    className="text-left py-3 px-4 font-semibold text-gray-700 whitespace-nowrap"
                   >
                     {column.label}
                   </th>
                 ))}
-                <th className="text-left py-3 px-4 font-semibold text-gray-700">
+                <th className="text-left py-3 px-4 font-semibold text-gray-700 whitespace-nowrap">
                   Actions
                 </th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="bg-white divide-y divide-gray-200">
               {paginatedRows.map((item) => (
-                <tr key={`${item.id}-${Math.random()}`} className="border-b hover:bg-gray-50">
+                <tr
+                  key={`${item.id}-${Math.random()}`}
+                  className="hover:bg-gray-50"
+                >
                   {columns.map((column) => (
-                    <td key={column.key} className="py-3 px-4 text-gray-600">
+                    <td
+                      key={column.key}
+                      className="py-3 px-4 text-gray-600 whitespace-nowrap"
+                    >
                       {renderCellContent(item, column)}
                     </td>
                   ))}
-                  <td  className="py-3 px-4">
+                  <td className="py-3 px-4 whitespace-nowrap">
                     <div className="flex space-x-2">
                       <button
                         onClick={() => handleEditClick(item)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Edit"
                       >
                         <Edit className="w-4 h-4" />
                       </button>
                       <button
                         onClick={() => handleDeleteClick(item.id)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Delete"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -526,36 +591,40 @@ const Table: React.FC<TableProps> = ({
           <div className="text-center py-8 text-gray-500">No records found</div>
         )}
 
-        <div className="mt-4 text-sm text-gray-600 px-4">
-          Showing {paginatedRows.length} of {filteredList.length} records
-          {selectedFilter !== "All" && ` filtered by ${selectedFilter}`}
-        </div>
-
-        {totalPages > 1 && (
-          <div className="flex justify-between items-center mt-6 px-4">
-            <div className="text-sm text-gray-600">
-              Page {currentPage} of {totalPages}
-            </div>
-            <div className="flex space-x-2">
-              <button
-                onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                disabled={currentPage === 1}
-                className="px-3 py-2 rounded-lg text-sm disabled:opacity-50 cursor-pointer bg-[#1B3A6A] text-white duration-200 ease-in-out"
-              >
-                Previous
-              </button>
-              <button
-                onClick={() =>
-                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                }
-                disabled={currentPage === totalPages}
-                className="px-3 py-2 rounded-lg text-sm disabled:opacity-50 cursor-pointer bg-[#1B3A6A] text-white duration-200 ease-in-out"
-              >
-                Next
-              </button>
-            </div>
+        <div className="mt-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="text-sm text-gray-600">
+            Showing {paginatedRows.length} of {filteredList.length} records
+            {selectedFilter !== "All" && ` filtered by ${selectedFilter}`}
           </div>
-        )}
+
+          {totalPages > 1 && (
+            <div className="flex items-center justify-between sm:justify-end gap-4">
+              <div className="text-sm text-gray-600">
+                Page {currentPage} of {totalPages}
+              </div>
+              <div className="flex space-x-2">
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(prev - 1, 1))
+                  }
+                  disabled={currentPage === 1}
+                  className="px-3 py-2 rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed bg-[#1B3A6A] text-white hover:bg-[#2d4f7a] transition-colors duration-200"
+                >
+                  Previous
+                </button>
+                <button
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.min(prev + 1, totalPages))
+                  }
+                  disabled={currentPage === totalPages}
+                  className="px-3 py-2 rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed bg-[#1B3A6A] text-white hover:bg-[#2d4f7a] transition-colors duration-200"
+                >
+                  Next
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );
