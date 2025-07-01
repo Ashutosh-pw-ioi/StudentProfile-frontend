@@ -60,8 +60,9 @@ export default function UploadSection({ onSuccess }: UploadSectionProps) {
     ];
     const validExtensions = [".xls", ".xlsx"];
 
-    const isValidType = validTypes.includes(file.type) || 
-      validExtensions.some(ext => file.name.toLowerCase().endsWith(ext));
+    const isValidType =
+      validTypes.includes(file.type) ||
+      validExtensions.some((ext) => file.name.toLowerCase().endsWith(ext));
 
     if (!isValidType) {
       setUploadStatus("error");
@@ -70,7 +71,8 @@ export default function UploadSection({ onSuccess }: UploadSectionProps) {
       return;
     }
 
-    if (file.size > 10 * 1024 * 1024) { // 10MB limit
+    if (file.size > 10 * 1024 * 1024) {
+      // 10MB limit
       setUploadStatus("error");
       setErrorMessage("File size exceeds 10MB limit");
       setUploadedFile(null);
@@ -94,7 +96,7 @@ export default function UploadSection({ onSuccess }: UploadSectionProps) {
 
   const uploadStudents = async () => {
     if (!uploadedFile) return;
-    
+
     setUploadStatus("uploading");
     setErrorMessage("");
     setSuccessMessage("");
@@ -113,7 +115,7 @@ export default function UploadSection({ onSuccess }: UploadSectionProps) {
         {
           method: "POST",
           headers: {
-            "token": token,
+            token: token,
           },
           body: formData,
         }
@@ -124,7 +126,7 @@ export default function UploadSection({ onSuccess }: UploadSectionProps) {
       if (response.ok && result.success) {
         setUploadStatus("success");
         setSuccessMessage(result.message || "Students added successfully!");
-        
+
         // Trigger the refresh callback if provided
         if (onSuccess) {
           onSuccess();
@@ -138,6 +140,10 @@ export default function UploadSection({ onSuccess }: UploadSectionProps) {
     }
   };
 
+  const triggerFileInput = () => {
+    fileInputRef.current?.click();
+  };
+
   return (
     <div className="w-full mx-auto">
       <div className="bg-white rounded-lg shadow-lg p-2 relative">
@@ -147,6 +153,16 @@ export default function UploadSection({ onSuccess }: UploadSectionProps) {
         >
           <HelpCircle size={20} />
         </button>
+
+        {/* Hidden file input */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          onChange={handleFileInput}
+          className="hidden"
+        />
+
         <div
           className={`relative border-2 border-dashed rounded-lg py-4 px-8 text-center transition-all duration-200 ${
             dragActive
@@ -162,14 +178,6 @@ export default function UploadSection({ onSuccess }: UploadSectionProps) {
           onDragOver={handleDrag}
           onDrop={handleDrop}
         >
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-            onChange={handleFileInput}
-            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-          />
-
           {uploadStatus === "success" ? (
             <div className="space-y-4">
               <div className="flex items-center justify-center">
@@ -182,7 +190,7 @@ export default function UploadSection({ onSuccess }: UploadSectionProps) {
                 <p className="text-gray-600 mb-2">{successMessage}</p>
                 <button
                   onClick={removeFile}
-                  className="px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#486AA0] transition-colors"
+                  className="px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#486AA0] transition-colors relative z-10"
                 >
                   Upload Another File
                 </button>
@@ -200,7 +208,7 @@ export default function UploadSection({ onSuccess }: UploadSectionProps) {
                 <p className="text-red-600 mb-2">{errorMessage}</p>
                 <button
                   onClick={removeFile}
-                  className="px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#486AA0] transition-colors"
+                  className="px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#486AA0] transition-colors relative z-10"
                 >
                   Try Again
                 </button>
@@ -237,13 +245,13 @@ export default function UploadSection({ onSuccess }: UploadSectionProps) {
                 <div className="flex justify-center gap-3">
                   <button
                     onClick={removeFile}
-                    className="px-4 py-2 text-[#1B3A6A] border border-[#1B3A6A] rounded-lg hover:bg-gray-100 transition-colors"
+                    className="px-4 py-2 text-[#1B3A6A] border border-[#1B3A6A] rounded-lg hover:bg-gray-100 transition-colors relative z-10"
                   >
                     Remove
                   </button>
                   <button
                     onClick={uploadStudents}
-                    className="px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#486AA0] transition-colors"
+                    className="px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#486AA0] transition-colors relative z-10"
                   >
                     Upload Students
                   </button>
@@ -251,7 +259,10 @@ export default function UploadSection({ onSuccess }: UploadSectionProps) {
               </div>
             </div>
           ) : (
-            <div className="space-y-4">
+            <div
+              className="space-y-4 cursor-pointer"
+              onClick={triggerFileInput}
+            >
               <div className="flex items-center justify-center">
                 <Upload
                   className={`${
@@ -262,7 +273,9 @@ export default function UploadSection({ onSuccess }: UploadSectionProps) {
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                  {dragActive ? "Drop your Excel file here" : "Upload Student Data"}
+                  {dragActive
+                    ? "Drop your Excel file here"
+                    : "Upload Student Data"}
                 </h3>
                 <p className="text-gray-600 mb-2 text-sm">
                   Drag and drop your Excel file here, or click to browse
@@ -290,18 +303,18 @@ export default function UploadSection({ onSuccess }: UploadSectionProps) {
               "enrollmentNumber",
               "center",
               "department",
-              "batch"
+              "batch",
             ],
             sampleRow: [
-              "John Doe", 
-              "john@example.com", 
-              "password123", 
-              "Male", 
-              "1234567890", 
-              "ENR2024001", 
-              "Patna", 
-              "SOT", 
-              "SOT24B1"
+              "John Doe",
+              "john@example.com",
+              "password123",
+              "Male",
+              "1234567890",
+              "ENR2024001",
+              "Patna",
+              "SOT",
+              "SOT24B1",
             ],
             columnDescriptions: [
               { key: "name", description: "Full name of the student" },
@@ -309,7 +322,10 @@ export default function UploadSection({ onSuccess }: UploadSectionProps) {
               { key: "password", description: "Password for student account" },
               { key: "gender", description: "Gender (Male, Female, Other)" },
               { key: "phoneNumber", description: "Phone number (10 digits)" },
-              { key: "enrollmentNumber", description: "Unique enrollment number" },
+              {
+                key: "enrollmentNumber",
+                description: "Unique enrollment number",
+              },
               { key: "center", description: "Center name (e.g., Patna)" },
               { key: "department", description: "Department (SOT, SOM, SOH)" },
               { key: "batch", description: "Batch name (e.g., SOT24B1)" },
@@ -319,14 +335,14 @@ export default function UploadSection({ onSuccess }: UploadSectionProps) {
               "All fields are required",
               "Department should be one of: SOT, SOM, SOH",
               "Center name must match existing centers",
-              "Batch names must match existing batches"
+              "Batch names must match existing batches",
             ],
             commonIssues: [
               "Wrong column names",
               "Missing required fields",
               "Incorrect department or center names",
               "Duplicate enrollment numbers",
-              "Invalid email formats"
+              "Invalid email formats",
             ],
           }}
         />

@@ -1,3 +1,4 @@
+// components/Shimmer.tsx
 import React from "react";
 import clsx from "clsx";
 
@@ -13,8 +14,8 @@ const ShimmerCard = ({ className }: { className?: string }) => (
 const ShimmerTableRow = () => (
   <tr className="animate-pulse">
     {[...Array(6)].map((_, i) => (
-      <td key={i} className="py-4 px-6">
-        <div className="h-4 bg-gray-200 rounded w-32"></div>
+      <td key={i} className="py-4 px-4">
+        <div className="h-4 w-full max-w-[120px] bg-gray-200 rounded"></div>
       </td>
     ))}
   </tr>
@@ -34,8 +35,8 @@ export default function Shimmer() {
         <ShimmerCard />
       </div>
 
-      {/* Shimmer table */}
-      <div className="bg-white rounded-lg shadow">
+      {/* Responsive shimmer table */}
+      <div className="bg-white rounded-lg shadow overflow-x-auto">
         <div className="p-4 border-b border-gray-200">
           <div className="h-6 w-48 bg-gray-200 rounded animate-pulse" />
         </div>
@@ -43,7 +44,10 @@ export default function Shimmer() {
           <thead>
             <tr>
               {[...Array(6)].map((_, i) => (
-                <th key={i} className="py-3 px-6 bg-gray-100"></th>
+                <th
+                  key={i}
+                  className="py-3 px-4 bg-gray-100 text-left whitespace-nowrap"
+                ></th>
               ))}
             </tr>
           </thead>
