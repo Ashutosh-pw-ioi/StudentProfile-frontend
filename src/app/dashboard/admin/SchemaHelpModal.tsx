@@ -1,75 +1,93 @@
 import React from "react";
 import { X } from "lucide-react";
 
-interface ColumnInfo {
+interface ColumnDescription {
   key: string;
   description: string;
 }
 
-interface SchemaHelpContent {
+interface SchemaInfo {
   title: string;
   columns: string[];
   sampleRow: string[];
-  columnDescriptions: ColumnInfo[];
+  columnDescriptions: ColumnDescription[];
   guidelines: string[];
   commonIssues: string[];
 }
 
 interface SchemaHelpModalProps {
   setShowSchemaHelp: (show: boolean) => void;
-  schemaInfo: SchemaHelpContent;
+  schemaInfo: SchemaInfo;
 }
 
-const SchemaHelpModal = ({
+const SchemaHelpModal: React.FC<SchemaHelpModalProps> = ({
   setShowSchemaHelp,
   schemaInfo,
-}: SchemaHelpModalProps) => (
-  <div className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50 p-4">
-    <div className="bg-white rounded-xl max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-      <div className="p-6">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold text-gray-800">
-            {schemaInfo.title}
+}) => {
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-lg max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+        <div className="sticky top-0 bg-white p-4 border-b flex justify-between items-center">
+          <h2 className="text-xl font-bold text-gray-800">
+            {schemaInfo.title} Schema Guide
           </h2>
           <button
             onClick={() => setShowSchemaHelp(false)}
-            className="text-gray-500 hover:text-gray-700 transition-colors cursor-pointer"
+            className="text-gray-500 hover:text-gray-700"
           >
             <X size={24} />
           </button>
         </div>
 
-        {/* Schema Table */}
-        <div className="space-y-4 text-gray-700">
+        <div className="p-6 space-y-6">
+          {/* Column Structure */}
           <div>
-            <h3 className="font-semibold text-lg mb-2">Required Format</h3>
-            <p className="mb-2">
-              Your XLS file should follow this exact structure:
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">
+              Required Columns
+            </h3>
+            <div className="grid grid-cols-3 gap-2 mb-2">
+              {schemaInfo.columns.map((column, index) => (
+                <div
+                  key={index}
+                  className="bg-gray-100 px-3 py-2 rounded text-sm font-mono"
+                >
+                  {column}
+                </div>
+              ))}
+            </div>
+            <p className="text-sm text-gray-600">
+              These columns must appear in the first row of your Excel file
             </p>
-            <div className="bg-gray-50 p-4 rounded-lg overflow-x-auto">
-              <table className="w-full text-sm font-mono">
+          </div>
+
+          {/* Sample Data */}
+          <div>
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">
+              Sample Data Row
+            </h3>
+            <div className="bg-gray-50 border rounded-lg p-4 overflow-x-auto">
+              <table className="min-w-full">
                 <thead>
-                  <tr className="border-b border-gray-300">
+                  <tr>
                     {schemaInfo.columns.map((col, idx) => (
-                      <th key={idx} className="text-left p-2 font-semibold">
+                      <th
+                        key={idx}
+                        className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                      >
                         {col}
                       </th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  <tr className="text-gray-600">
-                    {schemaInfo.sampleRow.map((val, idx) => (
-                      <td key={idx} className="p-2">
-                        {val}
+                  <tr>
+                    {schemaInfo.sampleRow.map((value, idx) => (
+                      <td
+                        key={idx}
+                        className="px-3 py-2 whitespace-nowrap text-sm text-gray-500 border-t"
+                      >
+                        {value}
                       </td>
-                    ))}
-                  </tr>
-                  <tr className="text-gray-500 text-xs">
-                    <td className="p-2">More rows...</td>
-                    {schemaInfo.columns.slice(1).map((_, i) => (
-                      <td key={i} className="p-2"></td>
                     ))}
                   </tr>
                 </tbody>
@@ -79,16 +97,16 @@ const SchemaHelpModal = ({
 
           {/* Column Descriptions */}
           <div>
-            <h3 className="font-semibold text-lg mb-2">
-              Column Specifications
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">
+              Column Descriptions
             </h3>
-            <div className="space-y-2 text-sm">
-              {schemaInfo.columnDescriptions.map((col, idx) => (
-                <div key={idx} className="flex gap-3">
-                  <span className="font-semibold min-w-[120px]">
-                    {col.key}:
-                  </span>
-                  <span>{col.description}</span>
+            <div className="space-y-2">
+              {schemaInfo.columnDescriptions.map((desc, idx) => (
+                <div key={idx} className="flex">
+                  <div className="font-medium text-gray-700 min-w-[120px]">
+                    {desc.key}:
+                  </div>
+                  <div className="text-gray-600">{desc.description}</div>
                 </div>
               ))}
             </div>
@@ -96,39 +114,40 @@ const SchemaHelpModal = ({
 
           {/* Guidelines */}
           <div>
-            <h3 className="font-semibold text-lg mb-2">Important Guidelines</h3>
-            <ul className="list-disc list-inside space-y-1">
-              {schemaInfo.guidelines.map((g, idx) => (
-                <li key={idx}>{g}</li>
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">
+              Guidelines
+            </h3>
+            <ul className="list-disc pl-5 space-y-1 text-gray-600">
+              {schemaInfo.guidelines.map((guideline, idx) => (
+                <li key={idx}>{guideline}</li>
               ))}
             </ul>
           </div>
 
           {/* Common Issues */}
           <div>
-            <h3 className="font-semibold text-lg mb-2">
+            <h3 className="text-lg font-semibold text-gray-800 mb-3">
               Common Issues to Avoid
             </h3>
-            <ul className="list-disc list-inside space-y-1 text-red-600">
+            <ul className="list-disc pl-5 space-y-1 text-gray-600">
               {schemaInfo.commonIssues.map((issue, idx) => (
                 <li key={idx}>{issue}</li>
               ))}
             </ul>
           </div>
-        </div>
 
-        {/* Footer Button */}
-        <div className="mt-6 flex justify-end">
-          <button
-            onClick={() => setShowSchemaHelp(false)}
-            className="px-6 py-2 bg-[#486AA0] text-white rounded-lg hover:bg-[#1B3A6A] transition-colors duration-200 ease-in-out cursor-pointer"
-          >
-            Got it!
-          </button>
+          <div className="flex justify-end pt-4">
+            <button
+              onClick={() => setShowSchemaHelp(false)}
+              className="px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#486AA0] transition-colors"
+            >
+              Close
+            </button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default SchemaHelpModal;

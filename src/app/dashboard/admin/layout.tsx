@@ -39,16 +39,16 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
       href: "/dashboard/admin/courses",
     },
     {
-      id: "result",
-      label: "Result",
-      icon: FileText,
-      href: "/dashboard/admin/results",
-    },
-    {
       id: "batch",
       label: "Batch",
       icon: Calendar,
       href: "/dashboard/admin/batches",
+    },
+    {
+      id: "result",
+      label: "Result",
+      icon: FileText,
+      href: "/dashboard/admin/results",
     },
     {
       id: "help",
@@ -62,8 +62,8 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
     if (pathname.includes("/students")) return "student";
     if (pathname.includes("/teachers")) return "teacher";
     if (pathname.includes("/courses")) return "course";
-    if (pathname.includes("/results")) return "result";
     if (pathname.includes("/batches")) return "batch";
+    if (pathname.includes("/results")) return "result";
     if (pathname.includes("/help")) return "help";
     return "student";
   };

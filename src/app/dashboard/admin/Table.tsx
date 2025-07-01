@@ -1,4 +1,6 @@
-import React, { useEffect, useState, useMemo } from "react";
+"use client";
+
+import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { Edit, Filter, Search, Trash2 } from "lucide-react";
 
 interface GenericTableItem {
@@ -10,27 +12,27 @@ interface ColumnConfig {
   key: string;
   label: string;
   type?: "text" | "number" | "email" | "select" | "badge";
-  options?: string[]; // For select fields
-  badgeColors?: { [key: string]: string }; // For badge styling
+  options?: string[];
+  badgeColors?: { [key: string]: string };
   searchable?: boolean;
   editable?: boolean;
-  hidden?: boolean; // To hide certain columns
+  hidden?: boolean;
 }
 
 interface TableProps {
   data: GenericTableItem[];
   title?: string;
-  filterField?: string; // Field to filter by (like department)
+  filterField?: string;
   onEdit?: (item: GenericTableItem) => void;
   onDelete?: (id: number | string) => void;
   rowsPerPage?: number;
   searchPlaceholder?: string;
   filterPlaceholder?: string;
-  columnConfig?: Partial<Record<string, Partial<ColumnConfig>>>; // Override auto-generated config
-  hiddenColumns?: string[]; // Columns to hide
-  badgeFields?: string[]; // Fields to display as badges
-  selectFields?: Record<string, string[]>; // Fields with select options
-  nonEditableFields?: string[]; // Fields that can't be edited
+  columnConfig?: Partial<Record<string, Partial<ColumnConfig>>>;
+  hiddenColumns?: string[];
+  badgeFields?: string[];
+  selectFields?: Record<string, string[]>;
+  nonEditableFields?: string[];
 }
 
 const Table: React.FC<TableProps> = ({
@@ -50,17 +52,24 @@ const Table: React.FC<TableProps> = ({
 }) => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
-  const [editingField, setEditingField] = useState<GenericTableItem | null>(
-    null
-  );
-  const [fieldToDelete, setFieldToDelete] = useState<number | string | null>(
-    null
-  );
-
+  const [editingField, setEditingField] = useState<GenericTableItem | null>(null);
+  const [fieldToDelete, setFieldToDelete] = useState<number | string | null>(null);
   const [selectedFilter, setSelectedFilter] = useState("All");
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [listData, setListData] = useState<GenericTableItem[]>(data);
+
+  // Debounce implementation
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300); // 300ms debounce delay
+
+    return () => {
+      clearTimeout(handler);
+    };
+  }, [searchTerm]);
 
   // Auto-generate columns from data
   const columns = useMemo(() => {
@@ -75,7 +84,6 @@ const Table: React.FC<TableProps> = ({
       const sampleValue = sampleItem[key];
       let type: ColumnConfig["type"] = "text";
 
-      // Auto-detect type
       if (typeof sampleValue === "number") {
         type = "number";
       } else if (key.toLowerCase().includes("email")) {
@@ -86,7 +94,6 @@ const Table: React.FC<TableProps> = ({
         type = "select";
       }
 
-      // Generate label from key (camelCase to Title Case)
       const label = key
         .replace(/([A-Z])/g, " $1")
         .replace(/^./, (str) => str.toUpperCase())
@@ -96,10 +103,10 @@ const Table: React.FC<TableProps> = ({
         key,
         label,
         type,
-        searchable: !["id"].includes(key), // ID typically not searchable
+        searchable: !["id"].includes(key),
         editable: !nonEditableFields.includes(key),
         ...(selectFields[key] && { options: selectFields[key] }),
-        ...columnConfig[key], // Apply any custom overrides
+        ...columnConfig[key],
       };
 
       autoColumns.push(column);
@@ -130,23 +137,25 @@ const Table: React.FC<TableProps> = ({
   // Get searchable columns
   const searchableColumns = columns.filter((col) => col.searchable !== false);
 
-  const filteredList = listData.filter((item) => {
-    // Filter logic
-    const matchesFilter =
-      !filterField ||
-      selectedFilter === "All" ||
-      item[filterField] === selectedFilter;
+  const filteredList = useMemo(() => {
+    return listData.filter((item) => {
+      // Filter logic
+      const matchesFilter =
+        !filterField ||
+        selectedFilter === "All" ||
+        item[filterField] === selectedFilter;
 
-    // Search logic
-    const matchesSearch =
-      !searchTerm ||
-      searchableColumns.some((col) => {
-        const value = item[col.key];
-        return String(value).toLowerCase().includes(searchTerm.toLowerCase());
-      });
+      // Search logic using debounced term
+      const matchesSearch =
+        !debouncedSearchTerm ||
+        searchableColumns.some((col) => {
+          const value = item[col.key];
+          return String(value).toLowerCase().includes(debouncedSearchTerm.toLowerCase());
+        });
 
-    return matchesFilter && matchesSearch;
-  });
+      return matchesFilter && matchesSearch;
+    });
+  }, [listData, filterField, selectedFilter, debouncedSearchTerm, searchableColumns]);
 
   const totalPages = Math.ceil(filteredList.length / rowsPerPage);
   const paginatedRows = filteredList.slice(
@@ -156,23 +165,19 @@ const Table: React.FC<TableProps> = ({
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [searchTerm, selectedFilter]);
+  }, [debouncedSearchTerm, selectedFilter]);
 
   const getBadgeColor = (column: ColumnConfig, value: string) => {
     if (column.badgeColors && column.badgeColors[value]) {
       return column.badgeColors[value];
     }
-    // Default colors based on common patterns
     const colorMap: { [key: string]: string } = {
-      // Departments
       SOT: "bg-blue-100 text-blue-800",
       SOM: "bg-green-100 text-green-800",
       SOH: "bg-purple-100 text-purple-800",
-      // Status
       Active: "bg-green-100 text-green-800",
       Inactive: "bg-red-100 text-red-800",
       Pending: "bg-yellow-100 text-yellow-800",
-      // Priority
       High: "bg-red-100 text-red-800",
       Medium: "bg-yellow-100 text-yellow-800",
       Low: "bg-green-100 text-green-800",
@@ -182,7 +187,6 @@ const Table: React.FC<TableProps> = ({
       return colorMap[value];
     }
 
-    // Generate color based on value hash
     const colors = [
       "bg-blue-100 text-blue-800",
       "bg-green-100 text-green-800",
@@ -453,7 +457,6 @@ const Table: React.FC<TableProps> = ({
                     </option>
                   ))}
                 </select>
-                {/* Custom dropdown arrow */}
                 <svg
                   className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"
                   fill="none"
@@ -490,32 +493,32 @@ const Table: React.FC<TableProps> = ({
               </tr>
             </thead>
             <tbody>
-              {paginatedRows.map((item) => (
-                <tr key={item.id} className="border-b hover:bg-gray-50">
-                  {columns.map((column) => (
-                    <td key={column.key} className="py-3 px-4 text-gray-600">
-                      {renderCellContent(item, column)}
-                    </td>
-                  ))}
-                  <td className="py-3 px-4">
-                    <div className="flex space-x-2">
-                      <button
-                        onClick={() => handleEditClick(item)}
-                        className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
-                      >
-                        <Edit className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteClick(item.id)}
-                        className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
+  {paginatedRows.map((item) => (
+    <tr key={item.id} className="border-b hover:bg-gray-50">
+      {columns.map((column) => (
+        <td key={`${item.id}-${column.key}`} className="py-3 px-4 text-gray-600">
+          {renderCellContent(item, column)}
+        </td>
+      ))}
+      <td key={`${item.id}-actions`} className="py-3 px-4">
+        <div className="flex space-x-2">
+          <button
+            onClick={() => handleEditClick(item)}
+            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
+          >
+            <Edit className="w-4 h-4" />
+          </button>
+          <button
+            onClick={() => handleDeleteClick(item.id)}
+            className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
+          >
+            <Trash2 className="w-4 h-4" />
+          </button>
+        </div>
+      </td>
+    </tr>
+  ))}
+</tbody>
           </table>
         </div>
 
