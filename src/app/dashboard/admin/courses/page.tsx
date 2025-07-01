@@ -5,6 +5,7 @@ import { BookOpen, Users, Plus } from "lucide-react";
 import Table from "../Table";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import Shimmer from "../Shimmer";
 
 interface Student {
   id: string;
@@ -89,14 +90,17 @@ export default function CourseManagement() {
       router.push("/auth/login/admin");
       return;
     }
-    
+
     // Get user center from token payload
     try {
-      const tokenPayload = JSON.parse(atob(token.split('.')[1]));
+      const tokenPayload = JSON.parse(atob(token.split(".")[1]));
       console.log(tokenPayload);
-      
+
       setUserCenter(tokenPayload.center || "");
-      setFormData(prev => ({ ...prev, centerName: tokenPayload.center || "" }));
+      setFormData((prev) => ({
+        ...prev,
+        centerName: tokenPayload.center || "",
+      }));
     } catch (error) {
       console.error("Error parsing token:", error);
     }
@@ -116,8 +120,8 @@ export default function CourseManagement() {
         "http://localhost:8000/api/course/all",
         {
           headers: {
-            token: token
-          }
+            token: token,
+          },
         }
       );
 
@@ -128,16 +132,16 @@ export default function CourseManagement() {
       }
 
       const data = response.data;
-      
+
       // Flatten courses from all departments
       const allCourses: Course[] = [];
-      Object.values(data.data).forEach(departmentCourses => {
+      Object.values(data.data).forEach((departmentCourses) => {
         allCourses.push(...departmentCourses);
       });
-      
+
       // Store full course data
       setCoursesFull(allCourses);
-      
+
       // Transform the data to match table structure
       const transformedData = allCourses.map((course) => ({
         id: course.courseId,
@@ -148,7 +152,7 @@ export default function CourseManagement() {
         batch: course.batchName,
         department: course.depName,
         center: course.centerName,
-        teachers: course.teachers.map(t => t.name).join(', '),
+        teachers: course.teachers.map((t) => t.name).join(", "),
         students: course.students.length,
         teachersFull: course.teachers,
         studentsFull: course.students,
@@ -158,9 +162,9 @@ export default function CourseManagement() {
     } catch (error: any) {
       console.error("Error fetching courses:", error);
       setError(
-        error.response?.data?.message || 
-        error.message || 
-        "Failed to load courses"
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to load courses"
       );
     } finally {
       setLoading(false);
@@ -181,7 +185,9 @@ export default function CourseManagement() {
       }
 
       // Find the original course data
-      const originalCourse = coursesFull.find(c => c.courseId === updatedItem.id);
+      const originalCourse = coursesFull.find(
+        (c) => c.courseId === updatedItem.id
+      );
       if (!originalCourse) {
         throw new Error("Course not found");
       }
@@ -203,13 +209,13 @@ export default function CourseManagement() {
         updateData,
         {
           headers: {
-            token: token
-          }
+            token: token,
+          },
         }
       );
 
       // Refresh data after update
-      setRefreshTrigger(prev => prev + 1);
+      setRefreshTrigger((prev) => prev + 1);
     } catch (error: any) {
       console.error("Error updating course:", error);
       if (error.response?.status === 401) {
@@ -218,9 +224,9 @@ export default function CourseManagement() {
         return;
       }
       setError(
-        error.response?.data?.message || 
-        error.message || 
-        "Failed to update course"
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to update course"
       );
     }
   };
@@ -238,14 +244,14 @@ export default function CourseManagement() {
         "http://localhost:8000/api/course/delete",
         {
           headers: {
-            token: token
+            token: token,
           },
-          data: { id }
+          data: { id },
         }
       );
 
       // Refresh data after delete
-      setRefreshTrigger(prev => prev + 1);
+      setRefreshTrigger((prev) => prev + 1);
     } catch (error: any) {
       console.error("Error deleting course:", error);
       if (error.response?.status === 401) {
@@ -254,16 +260,16 @@ export default function CourseManagement() {
         return;
       }
       setError(
-        error.response?.data?.message || 
-        error.message || 
-        "Failed to delete course"
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to delete course"
       );
     }
   };
 
   // Trigger refresh after upload
   const triggerRefresh = () => {
-    setRefreshTrigger(prev => prev + 1);
+    setRefreshTrigger((prev) => prev + 1);
   };
 
   // Open students modal
@@ -279,13 +285,15 @@ export default function CourseManagement() {
   };
 
   // Handle form input changes
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
     // Clear error when field is changed
     if (formErrors[name]) {
-      setFormErrors(prev => {
+      setFormErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors[name];
         return newErrors;
@@ -296,23 +304,29 @@ export default function CourseManagement() {
   // Validate form
   const validateForm = () => {
     const errors: Record<string, string> = {};
-    const requiredFields = ["departmentName", "batchName", "semesterNumber", "name", "code"];
-    
-    requiredFields.forEach(field => {
+    const requiredFields = [
+      "departmentName",
+      "batchName",
+      "semesterNumber",
+      "name",
+      "code",
+    ];
+
+    requiredFields.forEach((field) => {
       if (!formData[field as keyof typeof formData]) {
         errors[field] = "This field is required";
       }
     });
-    
+
     // Fixed: Added missing closing parenthesis
     if (isNaN(Number(formData.semesterNumber))) {
       errors.semesterNumber = "Must be a number";
     }
-    
+
     if (isNaN(Number(formData.credits))) {
       errors.credits = "Must be a number";
     }
-    
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -320,9 +334,9 @@ export default function CourseManagement() {
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
-    
+
     try {
       setIsSubmitting(true);
       const token = localStorage.getItem("authToken");
@@ -336,7 +350,7 @@ export default function CourseManagement() {
         ...formData,
         semesterNumber: Number(formData.semesterNumber),
         credits: Number(formData.credits),
-        centerName: userCenter
+        centerName: userCenter,
       };
 
       const response = await axios.post(
@@ -344,14 +358,14 @@ export default function CourseManagement() {
         payload,
         {
           headers: {
-            token: token
-          }
+            token: token,
+          },
         }
       );
 
       if (response.status === 201) {
         setIsAddCourseModalOpen(false);
-        setRefreshTrigger(prev => prev + 1);
+        setRefreshTrigger((prev) => prev + 1);
         setFormData({
           centerName: userCenter,
           departmentName: "",
@@ -365,13 +379,13 @@ export default function CourseManagement() {
     } catch (error: any) {
       console.error("Error creating course:", error);
       let errorMessage = "Failed to create course";
-      
+
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
       } else if (error.message) {
         errorMessage = error.message;
       }
-      
+
       setFormErrors({ submit: errorMessage });
     } finally {
       setIsSubmitting(false);
@@ -379,11 +393,7 @@ export default function CourseManagement() {
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-xl text-gray-600">Loading courses...</div>
-      </div>
-    );
+    return <Shimmer />;
   }
 
   if (error) {
@@ -391,10 +401,10 @@ export default function CourseManagement() {
       <div className="bg-red-50 text-red-600 p-4 rounded-lg max-w-2xl mx-auto mt-8">
         <h3 className="font-bold">Error</h3>
         <p>{error}</p>
-        <button 
+        <button
           onClick={() => {
             setError("");
-            setRefreshTrigger(prev => prev + 1);
+            setRefreshTrigger((prev) => prev + 1);
           }}
           className="mt-2 px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#122A4E]"
         >
@@ -410,22 +420,36 @@ export default function CourseManagement() {
       {studentsModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">Students List</h3>
+            <h3 className="text-xl font-bold text-gray-800 mb-4">
+              Students List
+            </h3>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Enrollment Number</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Email
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Enrollment Number
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {currentStudents.map((student) => (
                     <tr key={student.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{student.name}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{student.email}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{student.enrollmentNumber}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {student.name}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {student.email}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {student.enrollmentNumber}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -447,20 +471,30 @@ export default function CourseManagement() {
       {teachersModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">Teachers List</h3>
+            <h3 className="text-xl font-bold text-gray-800 mb-4">
+              Teachers List
+            </h3>
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Email
+                    </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {currentTeachers.map((teacher) => (
                     <tr key={teacher.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{teacher.name}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{teacher.email}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {teacher.name}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        {teacher.email}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -482,14 +516,16 @@ export default function CourseManagement() {
       {isAddCourseModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">Add New Course</h3>
-            
+            <h3 className="text-xl font-bold text-gray-800 mb-4">
+              Add New Course
+            </h3>
+
             {formErrors.submit && (
               <div className="mb-4 p-2 bg-red-50 text-red-600 rounded">
                 {formErrors.submit}
               </div>
             )}
-            
+
             <form onSubmit={handleSubmit}>
               <div className="space-y-4">
                 {/* Center Name (readonly for admin) */}
@@ -504,7 +540,7 @@ export default function CourseManagement() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100"
                   />
                 </div>
-                
+
                 {/* Department */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -515,7 +551,9 @@ export default function CourseManagement() {
                     value={formData.departmentName}
                     onChange={handleInputChange}
                     className={`w-full px-3 py-2 border rounded-md ${
-                      formErrors.departmentName ? "border-red-500" : "border-gray-300"
+                      formErrors.departmentName
+                        ? "border-red-500"
+                        : "border-gray-300"
                     }`}
                   >
                     <option value="">Select Department</option>
@@ -524,10 +562,12 @@ export default function CourseManagement() {
                     <option value="SOH">School of Humanities (SOH)</option>
                   </select>
                   {formErrors.departmentName && (
-                    <p className="mt-1 text-sm text-red-600">{formErrors.departmentName}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {formErrors.departmentName}
+                    </p>
                   )}
                 </div>
-                
+
                 {/* Batch */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -540,14 +580,18 @@ export default function CourseManagement() {
                     onChange={handleInputChange}
                     placeholder="e.g., SOT24B1"
                     className={`w-full px-3 py-2 border rounded-md ${
-                      formErrors.batchName ? "border-red-500" : "border-gray-300"
+                      formErrors.batchName
+                        ? "border-red-500"
+                        : "border-gray-300"
                     }`}
                   />
                   {formErrors.batchName && (
-                    <p className="mt-1 text-sm text-red-600">{formErrors.batchName}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {formErrors.batchName}
+                    </p>
                   )}
                 </div>
-                
+
                 {/* Semester */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -561,14 +605,18 @@ export default function CourseManagement() {
                     min="1"
                     max="8"
                     className={`w-full px-3 py-2 border rounded-md ${
-                      formErrors.semesterNumber ? "border-red-500" : "border-gray-300"
+                      formErrors.semesterNumber
+                        ? "border-red-500"
+                        : "border-gray-300"
                     }`}
                   />
                   {formErrors.semesterNumber && (
-                    <p className="mt-1 text-sm text-red-600">{formErrors.semesterNumber}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {formErrors.semesterNumber}
+                    </p>
                   )}
                 </div>
-                
+
                 {/* Course Name */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -584,10 +632,12 @@ export default function CourseManagement() {
                     }`}
                   />
                   {formErrors.name && (
-                    <p className="mt-1 text-sm text-red-600">{formErrors.name}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {formErrors.name}
+                    </p>
                   )}
                 </div>
-                
+
                 {/* Course Code */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -604,10 +654,12 @@ export default function CourseManagement() {
                     }`}
                   />
                   {formErrors.code && (
-                    <p className="mt-1 text-sm text-red-600">{formErrors.code}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {formErrors.code}
+                    </p>
                   )}
                 </div>
-                
+
                 {/* Credits */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -625,11 +677,13 @@ export default function CourseManagement() {
                     }`}
                   />
                   {formErrors.credits && (
-                    <p className="mt-1 text-sm text-red-600">{formErrors.credits}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {formErrors.credits}
+                    </p>
                   )}
                 </div>
               </div>
-              
+
               <div className="mt-6 flex justify-end space-x-3">
                 <button
                   type="button"
@@ -646,13 +700,31 @@ export default function CourseManagement() {
                 >
                   {isSubmitting ? (
                     <>
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      <svg
+                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
                       </svg>
                       Creating...
                     </>
-                  ) : "Create Course"}
+                  ) : (
+                    "Create Course"
+                  )}
                 </button>
               </div>
             </form>
@@ -676,7 +748,7 @@ export default function CourseManagement() {
             </p>
           </div>
         </div>
-        
+
         {/* Add Course Button */}
         <div className="bg-white/80 shadow-lg rounded-lg flex items-center justify-center p-6">
           <button
@@ -687,7 +759,9 @@ export default function CourseManagement() {
               <Plus size={24} />
             </div>
             <h3 className="text-lg font-semibold">Add New Course</h3>
-            <p className="text-sm text-gray-600 mt-1">Create a new course record</p>
+            <p className="text-sm text-gray-600 mt-1">
+              Create a new course record
+            </p>
           </button>
         </div>
       </div>
@@ -699,15 +773,15 @@ export default function CourseManagement() {
         badgeFields={["department", "batch"]}
         selectFields={{
           department: ["SOT", "SOM", "SOH"],
-          batch: ["SOT25B1", "SOT25B2", "SOM25B1", "SOM25B2"]
+          batch: ["SOT25B1", "SOT25B2", "SOM25B1", "SOM25B2"],
         }}
         nonEditableFields={["id"]}
-        hiddenColumns={["id","teachersFull", "studentsFull"]}
+        hiddenColumns={["id", "teachersFull", "studentsFull"]}
         onEdit={handleUpdateCourse}
         onDelete={handleDeleteCourse}
         customRenderers={{
           teachers: (item) => (
-            <button 
+            <button
               onClick={() => openTeachersModal(item.teachersFull)}
               className="text-blue-600 hover:text-blue-800 hover:underline"
             >
@@ -715,13 +789,13 @@ export default function CourseManagement() {
             </button>
           ),
           students: (item) => (
-            <button 
+            <button
               onClick={() => openStudentsModal(item.studentsFull)}
               className="text-blue-600 hover:text-blue-800 hover:underline"
             >
               {item.students} students
             </button>
-          )
+          ),
         }}
       />
     </div>

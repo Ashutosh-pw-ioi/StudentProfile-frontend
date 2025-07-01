@@ -6,19 +6,20 @@ import UploadSection from "../UploadSection";
 import Table from "../Table";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import Shimmer from "../Shimmer";
 
 // Helper function to parse JWT token
 const parseJwt = (token: string) => {
   try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
     const jsonPayload = decodeURIComponent(
       atob(base64)
-        .split('')
-        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-        .join('')
+        .split("")
+        .map((c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+        .join("")
     );
-    
+
     return JSON.parse(jsonPayload);
   } catch (e) {
     return null;
@@ -55,8 +56,8 @@ export default function TeachersManagement() {
         "http://localhost:8000/api/teacher/center-teachers",
         {
           headers: {
-            token: token
-          }
+            token: token,
+          },
         }
       );
 
@@ -67,17 +68,17 @@ export default function TeachersManagement() {
       }
 
       const data = response.data;
-      
+
       // Store full teacher data for edit operations
       setTeachersFull(data.teachers);
-      
+
       // Transform the data to match table structure
       const transformedData = data.teachers.map((teacher: any) => ({
         id: teacher.id,
         name: teacher.name,
         email: teacher.email,
         department: teacher.department.name,
-        batches: teacher.batches.map((batch: any) => batch.name).join(', '),
+        batches: teacher.batches.map((batch: any) => batch.name).join(", "),
         center: teacher.center.name,
       }));
 
@@ -85,9 +86,9 @@ export default function TeachersManagement() {
     } catch (error: any) {
       console.error("Error fetching teachers:", error);
       setError(
-        error.response?.data?.message || 
-        error.message || 
-        "Failed to load teachers"
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to load teachers"
       );
     } finally {
       setLoading(false);
@@ -108,7 +109,7 @@ export default function TeachersManagement() {
       }
 
       // Find the original teacher data
-      const originalTeacher = teachersFull.find(t => t.id === updatedItem.id);
+      const originalTeacher = teachersFull.find((t) => t.id === updatedItem.id);
       if (!originalTeacher) {
         throw new Error("Teacher not found");
       }
@@ -116,7 +117,7 @@ export default function TeachersManagement() {
       // Get center from token
       const decoded = parseJwt(token);
       const centerName = decoded?.centerName;
-      
+
       if (!centerName) {
         throw new Error("Center information not found in token");
       }
@@ -138,13 +139,13 @@ export default function TeachersManagement() {
         updateData,
         {
           headers: {
-            token: token
-          }
+            token: token,
+          },
         }
       );
 
       // Refresh data after update
-      setRefreshTrigger(prev => prev + 1);
+      setRefreshTrigger((prev) => prev + 1);
     } catch (error: any) {
       console.error("Error updating teacher:", error);
       if (error.response?.status === 401) {
@@ -153,9 +154,9 @@ export default function TeachersManagement() {
         return;
       }
       setError(
-        error.response?.data?.message || 
-        error.message || 
-        "Failed to update teacher"
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to update teacher"
       );
     }
   };
@@ -173,14 +174,14 @@ export default function TeachersManagement() {
         "http://localhost:8000/api/teacher/delete-teacher",
         {
           headers: {
-            token: token
+            token: token,
           },
-          data: { id }
+          data: { id },
         }
       );
 
       // Refresh data after delete
-      setRefreshTrigger(prev => prev + 1);
+      setRefreshTrigger((prev) => prev + 1);
     } catch (error: any) {
       console.error("Error deleting teacher:", error);
       if (error.response?.status === 401) {
@@ -189,24 +190,20 @@ export default function TeachersManagement() {
         return;
       }
       setError(
-        error.response?.data?.message || 
-        error.message || 
-        "Failed to delete teacher"
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to delete teacher"
       );
     }
   };
 
   // Trigger refresh after upload
   const triggerRefresh = () => {
-    setRefreshTrigger(prev => prev + 1);
+    setRefreshTrigger((prev) => prev + 1);
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-xl text-gray-600">Loading teachers...</div>
-      </div>
-    );
+    return <Shimmer />;
   }
 
   if (error) {
@@ -214,10 +211,10 @@ export default function TeachersManagement() {
       <div className="bg-red-50 text-red-600 p-4 rounded-lg max-w-2xl mx-auto mt-8">
         <h3 className="font-bold">Error</h3>
         <p>{error}</p>
-        <button 
+        <button
           onClick={() => {
             setError("");
-            setRefreshTrigger(prev => prev + 1);
+            setRefreshTrigger((prev) => prev + 1);
           }}
           className="mt-2 px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#122A4E]"
         >

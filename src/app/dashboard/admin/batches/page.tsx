@@ -5,6 +5,7 @@ import { Users, Plus } from "lucide-react";
 import Table from "../Table";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import Shimmer from "../Shimmer";
 
 interface Student {
   id: string;
@@ -84,15 +85,15 @@ export default function BatchManagement() {
       router.push("/auth/login/admin");
       return;
     }
-    
+
     try {
-      const tokenPayload = JSON.parse(atob(token.split('.')[1]));
+      const tokenPayload = JSON.parse(atob(token.split(".")[1]));
       const center = tokenPayload.center || "";
       const role = tokenPayload.role || "";
-      
+
       setUserCenter(center);
       setUserRole(role);
-      setFormData(prev => ({ ...prev, centerName: center }));
+      setFormData((prev) => ({ ...prev, centerName: center }));
       setUserInfoLoaded(true);
     } catch (error) {
       console.error("Error parsing token:", error);
@@ -109,7 +110,7 @@ export default function BatchManagement() {
       try {
         setLoading(true);
         setError("");
-        
+
         const token = localStorage.getItem("authToken");
         if (!token) {
           router.push("/auth/login/admin");
@@ -135,26 +136,26 @@ export default function BatchManagement() {
 
         const data = response.data;
         const allBatches: Batch[] = [];
-        
-        data.data.departments.forEach(department => {
-          department.batches.forEach(batch => {
+
+        data.data.departments.forEach((department) => {
+          department.batches.forEach((batch) => {
             allBatches.push({
               ...batch,
               departmentName: department.departmentName,
-              centerName: data.data.center
+              centerName: data.data.center,
             });
           });
         });
-        
+
         setBatchesFull(allBatches);
-        
+
         const transformedData: TableBatch[] = allBatches.map((batch) => ({
           id: batch.batchId,
           name: batch.batchName,
           department: batch.departmentName || "",
           center: batch.centerName || "",
           students: batch.students?.length || 0,
-          teachers: batch.teachers?.length|| "No teachers",
+          teachers: batch.teachers?.length || "No teachers",
           teachersFull: batch.teachers || [],
           studentsFull: batch.students || [],
         }));
@@ -162,16 +163,17 @@ export default function BatchManagement() {
         setBatches(transformedData);
       } catch (error: any) {
         console.error("Error fetching batches:", error);
-        
+
         if (error.response?.status === 401) {
           localStorage.removeItem("authToken");
           router.push("/auth/login/admin");
           return;
         }
-        
-        const errorMessage = error.response?.data?.message || 
-                            error.message || 
-                            "Failed to load batches";
+
+        const errorMessage =
+          error.response?.data?.message ||
+          error.message ||
+          "Failed to load batches";
         setError(errorMessage);
       } finally {
         setLoading(false);
@@ -202,20 +204,21 @@ export default function BatchManagement() {
       );
 
       if (response.status === 200) {
-        setRefreshTrigger(prev => prev + 1);
+        setRefreshTrigger((prev) => prev + 1);
       }
     } catch (error: any) {
       console.error("Error updating batch:", error);
-      
+
       if (error.response?.status === 401) {
         localStorage.removeItem("authToken");
         router.push("/auth/login/admin");
         return;
       }
-      
-      const errorMessage = error.response?.data?.message || 
-                          error.message || 
-                          "Failed to update batch";
+
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to update batch";
       setError(errorMessage);
     }
   };
@@ -237,25 +240,26 @@ export default function BatchManagement() {
         "http://localhost:8000/api/batch/delete",
         {
           headers: { token },
-          data: { batchId: id }
+          data: { batchId: id },
         }
       );
 
       if (response.status === 200) {
-        setRefreshTrigger(prev => prev + 1);
+        setRefreshTrigger((prev) => prev + 1);
       }
     } catch (error: any) {
       console.error("Error deleting batch:", error);
-      
+
       if (error.response?.status === 401) {
         localStorage.removeItem("authToken");
         router.push("/auth/login/admin");
         return;
       }
-      
-      const errorMessage = error.response?.data?.message || 
-                          error.message || 
-                          "Failed to delete batch";
+
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to delete batch";
       setError(errorMessage);
     }
   };
@@ -273,12 +277,14 @@ export default function BatchManagement() {
   };
 
   // Handle form input changes
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    
+    setFormData((prev) => ({ ...prev, [name]: value }));
+
     if (formErrors[name]) {
-      setFormErrors(prev => {
+      setFormErrors((prev) => {
         const newErrors = { ...prev };
         delete newErrors[name];
         return newErrors;
@@ -289,15 +295,15 @@ export default function BatchManagement() {
   // Validate form
   const validateForm = () => {
     const errors: Record<string, string> = {};
-    
+
     if (!formData.depName.trim()) {
       errors.depName = "Department is required";
     }
-    
+
     if (!formData.batchName.trim()) {
       errors.batchName = "Batch name is required";
     }
-    
+
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -305,13 +311,13 @@ export default function BatchManagement() {
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) return;
-    
+
     try {
       setIsSubmitting(true);
       setFormErrors({});
-      
+
       const token = localStorage.getItem("authToken");
       if (!token) {
         router.push("/auth/login/admin");
@@ -332,7 +338,7 @@ export default function BatchManagement() {
 
       if (response.status === 201 || response.status === 200) {
         setIsAddBatchModalOpen(false);
-        setRefreshTrigger(prev => prev + 1);
+        setRefreshTrigger((prev) => prev + 1);
         setFormData({
           centerName: userCenter,
           depName: "",
@@ -341,16 +347,17 @@ export default function BatchManagement() {
       }
     } catch (error: any) {
       console.error("Error creating batch:", error);
-      
+
       if (error.response?.status === 401) {
         localStorage.removeItem("authToken");
         router.push("/auth/login/admin");
         return;
       }
-      
-      const errorMessage = error.response?.data?.message || 
-                          error.message || 
-                          "Failed to create batch";
+
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "Failed to create batch";
       setFormErrors({ submit: errorMessage });
     } finally {
       setIsSubmitting(false);
@@ -370,11 +377,7 @@ export default function BatchManagement() {
 
   // Loading state
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-64">
-        <div className="text-xl text-gray-600">Loading batches...</div>
-      </div>
-    );
+    return <Shimmer />;
   }
 
   // Error state
@@ -383,10 +386,10 @@ export default function BatchManagement() {
       <div className="bg-red-50 text-red-600 p-4 rounded-lg max-w-2xl mx-auto mt-8">
         <h3 className="font-bold">Error</h3>
         <p>{error}</p>
-        <button 
+        <button
           onClick={() => {
             setError("");
-            setRefreshTrigger(prev => prev + 1);
+            setRefreshTrigger((prev) => prev + 1);
           }}
           className="mt-2 px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#122A4E]"
         >
@@ -402,30 +405,46 @@ export default function BatchManagement() {
       {studentsModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">Students List</h3>
+            <h3 className="text-xl font-bold text-gray-800 mb-4">
+              Students List
+            </h3>
             {currentStudents.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Enrollment Number</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Name
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Email
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Enrollment Number
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {currentStudents.map((student) => (
                       <tr key={student.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{student.name}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{student.email}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{student.enrollmentNumber}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {student.name}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {student.email}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {student.enrollmentNumber}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
             ) : (
-              <p className="text-gray-500 text-center py-4">No students found in this batch.</p>
+              <p className="text-gray-500 text-center py-4">
+                No students found in this batch.
+              </p>
             )}
             <div className="mt-4 flex justify-end">
               <button
@@ -443,28 +462,40 @@ export default function BatchManagement() {
       {teachersModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">Teachers List</h3>
+            <h3 className="text-xl font-bold text-gray-800 mb-4">
+              Teachers List
+            </h3>
             {currentTeachers.length > 0 ? (
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Name
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Email
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {currentTeachers.map((teacher) => (
                       <tr key={teacher.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{teacher.name}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{teacher.email}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {teacher.name}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {teacher.email}
+                        </td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
             ) : (
-              <p className="text-gray-500 text-center py-4">No teachers assigned to this batch.</p>
+              <p className="text-gray-500 text-center py-4">
+                No teachers assigned to this batch.
+              </p>
             )}
             <div className="mt-4 flex justify-end">
               <button
@@ -482,14 +513,16 @@ export default function BatchManagement() {
       {isAddBatchModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">Add New Batch</h3>
-            
+            <h3 className="text-xl font-bold text-gray-800 mb-4">
+              Add New Batch
+            </h3>
+
             {formErrors.submit && (
               <div className="mb-4 p-2 bg-red-50 text-red-600 rounded">
                 {formErrors.submit}
               </div>
             )}
-            
+
             <form onSubmit={handleSubmit}>
               <div className="space-y-4">
                 {/* Center Name (readonly for admin) */}
@@ -504,7 +537,7 @@ export default function BatchManagement() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100"
                   />
                 </div>
-                
+
                 {/* Department */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -524,10 +557,12 @@ export default function BatchManagement() {
                     <option value="SOH">School of Humanities (SOH)</option>
                   </select>
                   {formErrors.depName && (
-                    <p className="mt-1 text-sm text-red-600">{formErrors.depName}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {formErrors.depName}
+                    </p>
                   )}
                 </div>
-                
+
                 {/* Batch Name */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -540,15 +575,19 @@ export default function BatchManagement() {
                     onChange={handleInputChange}
                     placeholder="e.g., SOT24B1"
                     className={`w-full px-3 py-2 border rounded-md ${
-                      formErrors.batchName ? "border-red-500" : "border-gray-300"
+                      formErrors.batchName
+                        ? "border-red-500"
+                        : "border-gray-300"
                     }`}
                   />
                   {formErrors.batchName && (
-                    <p className="mt-1 text-sm text-red-600">{formErrors.batchName}</p>
+                    <p className="mt-1 text-sm text-red-600">
+                      {formErrors.batchName}
+                    </p>
                   )}
                 </div>
               </div>
-              
+
               <div className="mt-6 flex justify-end space-x-3">
                 <button
                   type="button"
@@ -565,13 +604,31 @@ export default function BatchManagement() {
                 >
                   {isSubmitting ? (
                     <>
-                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      <svg
+                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
                       </svg>
                       Creating...
                     </>
-                  ) : "Create Batch"}
+                  ) : (
+                    "Create Batch"
+                  )}
                 </button>
               </div>
             </form>
@@ -597,7 +654,7 @@ export default function BatchManagement() {
             </p>
           </div>
         </div>
-        
+
         {/* Add Batch Button */}
         <div className="bg-white/80 shadow-lg rounded-lg flex items-center justify-center p-6">
           <button
@@ -608,7 +665,9 @@ export default function BatchManagement() {
               <Plus size={24} />
             </div>
             <h3 className="text-lg font-semibold">Add New Batch</h3>
-            <p className="text-sm text-gray-600 mt-1">Create a new batch record</p>
+            <p className="text-sm text-gray-600 mt-1">
+              Create a new batch record
+            </p>
           </button>
         </div>
       </div>
@@ -620,7 +679,7 @@ export default function BatchManagement() {
         filterField="department"
         badgeFields={["department"]}
         selectFields={{
-          department: ["SOT", "SOM", "SOH"]
+          department: ["SOT", "SOM", "SOH"],
         }}
         nonEditableFields={["id", "center", "students", "teachers"]}
         onEdit={handleUpdateBatch}
@@ -628,7 +687,7 @@ export default function BatchManagement() {
         hiddenColumns={["id", "teachersFull", "studentsFull"]}
         customRenderers={{
           teachers: (item) => (
-            <button 
+            <button
               onClick={() => openTeachersModal(item.teachersFull)}
               className="text-blue-600 hover:text-blue-800 hover:underline"
             >
@@ -636,13 +695,13 @@ export default function BatchManagement() {
             </button>
           ),
           students: (item) => (
-            <button 
+            <button
               onClick={() => openStudentsModal(item.studentsFull)}
               className="text-blue-600 hover:text-blue-800 hover:underline"
             >
               {item.students} students
             </button>
-          )
+          ),
         }}
       />
     </div>

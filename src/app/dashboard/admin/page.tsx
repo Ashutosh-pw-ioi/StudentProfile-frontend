@@ -6,6 +6,7 @@ import UploadSection from "./UploadSection";
 import Table from "./Table";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import Shimmer from "./Shimmer";
 
 // Helper function to convert semester number to string
 function getSemesterString(semesterNo: number): string {
@@ -49,7 +50,7 @@ export default function AdminProfile() {
       if (data.success) {
         // Store full student data for edit operations
         setStudentsFull(data.students);
-        
+
         // Transform the data to match table structure
         let transformedData = data.students.map((student: any) => ({
           id: student.id,
@@ -64,7 +65,7 @@ export default function AdminProfile() {
         }));
 
         // Sort by studentId (enrollmentNumber) in ascending order
-        transformedData = transformedData.sort((a, b) => 
+        transformedData = transformedData.sort((a, b) =>
           a.studentId.localeCompare(b.studentId)
         );
 
@@ -85,7 +86,7 @@ export default function AdminProfile() {
 
   // Add this function to trigger a refresh
   const triggerRefresh = () => {
-    setRefreshTrigger(prev => prev + 1);
+    setRefreshTrigger((prev) => prev + 1);
   };
 
   const handleEditStudent = async (updatedItem: any) => {
@@ -97,7 +98,7 @@ export default function AdminProfile() {
 
     try {
       // Find the original student data
-      const originalStudent = studentsFull.find(s => s.id === updatedItem.id);
+      const originalStudent = studentsFull.find((s) => s.id === updatedItem.id);
       if (!originalStudent) {
         throw new Error("Student not found");
       }
@@ -112,7 +113,7 @@ export default function AdminProfile() {
         gender: "Male", // Default value since not in UI
         phoneNumber: "0000000000", // Default value since not in UI
         semesterNo: getSemesterNumber(updatedItem.semester),
-        password: "password" // Default value since not in UI
+        password: "password", // Default value since not in UI
       };
 
       const response = await axios.put(
@@ -121,14 +122,14 @@ export default function AdminProfile() {
         {
           headers: {
             token: token,
-          }
+          },
         }
       );
 
       const result = response.data;
       if (result.success) {
         // Refetch data to get updated list
-        setRefreshTrigger(prev => prev + 1);
+        setRefreshTrigger((prev) => prev + 1);
       } else {
         throw new Error(result.message || "Failed to update student");
       }
@@ -151,14 +152,14 @@ export default function AdminProfile() {
           headers: {
             token: token,
           },
-          data: { id }
+          data: { id },
         }
       );
 
       const result = response.data;
       if (result.success) {
         // Refetch data to get updated list
-        setRefreshTrigger(prev => prev + 1);
+        setRefreshTrigger((prev) => prev + 1);
       } else {
         throw new Error(result.message || "Failed to delete student");
       }
@@ -168,11 +169,7 @@ export default function AdminProfile() {
   };
 
   if (loading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <p>Loading student data...</p>
-      </div>
-    );
+    return <Shimmer />;
   }
 
   if (error) {
