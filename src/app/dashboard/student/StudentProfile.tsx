@@ -338,7 +338,7 @@ export default function StudentProfile() {
             <h4 className="text-lg font-medium text-gray-600">CGPA</h4>
           </div>
           <div className="text-center pt-0 pb-6">
-            <p className="text-5xl font-bold text-green-500">
+            <p className="text-5xl font-bold text-[#1B3A6A]">
               {studentData.cgpa || "N/A"}
             </p>
           </div>
@@ -347,7 +347,7 @@ export default function StudentProfile() {
         <div className="bg-white/80 backdrop-blur-sm shadow-lg rounded-lg border-0 relative">
           <button
             onClick={() => setShowAttendanceModal(true)}
-            className="absolute top-4 right-4 text-blue-600 hover:text-blue-800"
+            className="absolute top-4 right-4 text-[#1B3A6A]"
             aria-label="View Attendance Details"
           >
             <ArrowUpRight className="w-5 h-5 cursor-pointer" />
@@ -356,7 +356,7 @@ export default function StudentProfile() {
             <h4 className="text-lg font-medium text-gray-600">Attendance %</h4>
           </div>
           <div className="text-center pt-0 pb-6">
-            <p className="text-5xl font-bold text-blue-500">
+            <p className="text-5xl font-bold text-[#1B3A6A]">
               {studentData.attendance || "N/A"}
             </p>
           </div>
