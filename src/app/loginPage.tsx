@@ -52,9 +52,6 @@ export default function LoginPage({
   role,
   imagePath,
   bgColor = "#F1CB8D",
-  primaryColor = "#1B3A6A",
-  hoverColor = "#486AA0",
-  focusColor = "#D9A864",
 }: LoginPageProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -65,7 +62,6 @@ export default function LoginPage({
 
   const config = roleConfig[role];
 
-  // Handle client-side hydration
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -73,10 +69,9 @@ export default function LoginPage({
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validate inputs
     if (!email.trim()) {
       toast.error("Please enter your email address", {
-        toastId: "email-required", // Prevent duplicate toasts
+        toastId: "email-required", 
       });
       return;
     }
@@ -88,7 +83,6 @@ export default function LoginPage({
       return;
     }
 
-    // Basic email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email.trim())) {
       toast.error("Please enter a valid email address", {
@@ -117,7 +111,6 @@ export default function LoginPage({
 
       const { token, user } = response.data;
 
-      // Only use localStorage on client side
       if (isClient && typeof window !== "undefined") {
         localStorage.setItem("authToken", token);
         localStorage.setItem("user", JSON.stringify(user));

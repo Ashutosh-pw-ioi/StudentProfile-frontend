@@ -14,8 +14,18 @@ import {
 
 const TeacherLayout = ({ children }: { children: React.ReactNode }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [tokenPresent, setTokenPresent] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+
+  useEffect(() => {
+      const token = localStorage.getItem('authToken');
+      setTokenPresent(!!token)
+      if (!token) {
+        
+        router.push('/auth/login/teacher');
+      }
+    }, [router]);
 
   const menuItems = [
     { id: "profile", label: "Profile", icon: User, href: "/dashboard/teacher" },
@@ -84,6 +94,11 @@ const TeacherLayout = ({ children }: { children: React.ReactNode }) => {
     console.log("Logout clicked");
     router.push("/auth/login/teacher");
   };
+  if (!tokenPresent) {
+    console.log(tokenPresent);
+    
+    return null
+  }
 
   return (
     <div className="flex min-h-screen">
