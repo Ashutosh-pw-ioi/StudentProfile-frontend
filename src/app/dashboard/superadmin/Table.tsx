@@ -70,7 +70,7 @@ const Table: React.FC<TableProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [listData, setListData] = useState<GenericTableItem[]>(data);
 
-  
+  // Debounce implementation
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);

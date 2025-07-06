@@ -21,7 +21,23 @@ function getSemesterNumber(semesterStr: string): number {
 }
 
 export default function AdminProfile() {
+
   const router = useRouter();
+
+
+  useEffect(() => {
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        if (user.role === "SUPER_ADMIN") {
+          router.push("/dashboard/superadmin");
+        }
+      } catch (e) {
+        console.error("Invalid user data in localStorage");
+      }
+    }
+  }, [router]);
   const [studentsData, setStudentsData] = useState<any[]>([]);
   const [studentsFull, setStudentsFull] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -29,6 +45,8 @@ export default function AdminProfile() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const fetchStudentData = useCallback(async () => {
+
+
     const token = localStorage.getItem("authToken");
     if (!token) {
       router.push("/auth/admin/login");
@@ -94,6 +112,7 @@ export default function AdminProfile() {
       router.push("/auth/admin/login");
       return;
     }
+    
 
     try {
       // Find the original student data
