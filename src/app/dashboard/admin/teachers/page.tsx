@@ -7,6 +7,7 @@ import Table from "../Table";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import Shimmer from "../Shimmer";
+import teacherSchemaInfo from "../constants/TeacherSchemaInfo";
 
 export default function TeachersManagement() {
   const [teachers, setTeachers] = useState<any[]>([]);
@@ -16,7 +17,6 @@ export default function TeachersManagement() {
   const router = useRouter();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
-  // Check authentication
   useEffect(() => {
     const token = localStorage.getItem("authToken");
     if (!token) {
@@ -24,7 +24,6 @@ export default function TeachersManagement() {
     }
   }, [router]);
 
-  // Fetch teachers data
   const fetchTeachers = useCallback(async () => {
     try {
       setLoading(true);
@@ -78,7 +77,6 @@ export default function TeachersManagement() {
     fetchTeachers();
   }, [fetchTeachers, refreshTrigger]);
 
-  // Update teacher handler
   const handleUpdateTeacher = async (updatedItem: any) => {
     try {
       const token = localStorage.getItem("authToken");
@@ -87,7 +85,6 @@ export default function TeachersManagement() {
         return;
       }
 
-      // Find the original teacher data
       const originalTeacher = teachersFull.find((t) => t.id === updatedItem.id);
       if (!originalTeacher) {
         throw new Error("Teacher not found");
@@ -98,7 +95,6 @@ export default function TeachersManagement() {
         throw new Error("Center information not found for teacher");
       }
 
-      // Prepare update payload
       const updateData = {
         id: updatedItem.id,
         name: updatedItem.name,
@@ -120,7 +116,6 @@ export default function TeachersManagement() {
         }
       );
 
-      // Refresh data after update
       setRefreshTrigger((prev) => prev + 1);
     } catch (error: any) {
       console.error("Error updating teacher:", error);
@@ -137,7 +132,6 @@ export default function TeachersManagement() {
     }
   };
 
-  // Delete teacher handler
   const handleDeleteTeacher = async (id: string | number) => {
     try {
       const token = localStorage.getItem("authToken");
@@ -146,17 +140,13 @@ export default function TeachersManagement() {
         return;
       }
 
-      await axios.delete(
-        "http://localhost:8000/api/teacher/delete-teacher",
-        {
-          headers: {
-            token: token,
-          },
-          data: { id },
-        }
-      );
+      await axios.delete("http://localhost:8000/api/teacher/delete-teacher", {
+        headers: {
+          token: token,
+        },
+        data: { id },
+      });
 
-      // Refresh data after delete
       setRefreshTrigger((prev) => prev + 1);
     } catch (error: any) {
       console.error("Error deleting teacher:", error);
@@ -199,63 +189,6 @@ export default function TeachersManagement() {
     );
   }
 
-  // Teacher schema configuration
-  const teacherSchemaInfo = {
-    title: "Teacher Upload",
-    columns: [
-      "name",
-      "email",
-      "password",
-      "gender",
-      "phoneNumber",
-      "experience",
-      "centerName",
-      "departmentName",
-      "batchName",
-      "courseName"
-    ],
-    sampleRow: [
-      "Jane Smith",
-      "jane@example.com",
-      "securePassword",
-      "Female",
-      "0987654321",
-      "5",
-      "Patna",
-      "SOT",
-      "SOT24B1",
-      "Mathematics"
-    ],
-    columnDescriptions: [
-      { key: "name", description: "Full name of the teacher" },
-      { key: "email", description: "Email address of the teacher" },
-      { key: "password", description: "Password for teacher account" },
-      { key: "gender", description: "Gender (Male, Female, Other)" },
-      { key: "phoneNumber", description: "Phone number (10 digits)" },
-      { key: "experience", description: "Years of teaching experience" },
-      { key: "centerName", description: "Center name (e.g., Patna)" },
-      { key: "departmentName", description: "Department (SOT, SOM, SOH)" },
-      { key: "batchName", description: "Batch name (e.g., SOT24B1)" },
-      { key: "courseName", description: "Course name (e.g., Mathematics)" }
-    ],
-    guidelines: [
-      "Column headers must match exactly",
-      "All fields are required",
-      "Department should be one of: SOT, SOM, SOH",
-      "Center name must match existing centers",
-      "Batch names must match existing batches",
-      "Course names must match existing courses in the specified batch"
-    ],
-    commonIssues: [
-      "Wrong column names",
-      "Missing required fields",
-      "Incorrect department, center, or course names",
-      "Duplicate email addresses",
-      "Invalid experience values (should be a number)",
-      "Course not found in the specified batch"
-    ],
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between">
@@ -274,7 +207,7 @@ export default function TeachersManagement() {
             </p>
           </div>
         </div>
-        <UploadSection 
+        <UploadSection
           onSuccess={triggerRefresh}
           uploadUrl="http://localhost:8000/api/teacher/add-teacher"
           schemaInfo={teacherSchemaInfo}

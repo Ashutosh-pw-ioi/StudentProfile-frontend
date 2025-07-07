@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { BookOpen, Users, FileUp } from "lucide-react";
+import { BookOpen, Users } from "lucide-react";
 import UploadSection from "../UploadSection";
 import Table from "../Table";
 import { useRouter } from "next/navigation";
@@ -9,13 +9,12 @@ import axios from "axios";
 import Shimmer from "../Shimmer";
 import StudentScoresModal from "./StudentScoresModal";
 
-// Helper function to get admin ID from localStorage
 const getAdminId = () => {
-  if (typeof window === 'undefined') return null; // Server-side check
-  
+  if (typeof window === "undefined") return null;
+
   const user = localStorage.getItem("user");
+
   if (!user) return null;
-  
   try {
     const userData = JSON.parse(user);
     return userData.id;
@@ -25,9 +24,8 @@ const getAdminId = () => {
   }
 };
 
-// Helper function to get auth token
 const getAuthToken = () => {
-  if (typeof window === 'undefined') return null; // Server-side check
+  if (typeof window === "undefined") return null;
   return localStorage.getItem("authToken");
 };
 
@@ -81,15 +79,13 @@ export default function ResultManagement() {
   const [mounted, setMounted] = useState(false);
   const router = useRouter();
 
-  // Handle client-side mounting
   useEffect(() => {
     setMounted(true);
   }, []);
 
-  // Authentication check
   const checkAuth = useCallback(() => {
     if (!mounted) return false;
-    
+
     const token = getAuthToken();
     if (!token) {
       router.push("/auth/login/admin");
@@ -98,7 +94,6 @@ export default function ResultManagement() {
     return true;
   }, [mounted, router]);
 
-  // Fetch admin center
   const fetchAdminCenter = useCallback(async () => {
     if (!mounted || !checkAuth()) return;
 
@@ -136,21 +131,19 @@ export default function ResultManagement() {
     }
   }, [mounted, checkAuth, router]);
 
-  // Initial setup
   useEffect(() => {
     if (mounted) {
       fetchAdminCenter();
     }
   }, [mounted, fetchAdminCenter]);
 
-  // Fetch courses data
   const fetchCourses = useCallback(async () => {
     if (!mounted || !centerName || !checkAuth()) return;
 
     try {
       setLoading(true);
       setError("");
-      
+
       const token = getAuthToken();
       if (!token) {
         router.push("/auth/login/admin");
@@ -161,14 +154,14 @@ export default function ResultManagement() {
         "http://localhost:8000/api/marks/center-scores",
         {
           headers: { token },
-          params: { centerName }
+          params: { centerName },
         }
       );
 
       setCourses(response.data.data || []);
     } catch (error: any) {
       console.error("Error fetching courses:", error);
-      
+
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 401) {
           if (mounted) {
@@ -178,11 +171,11 @@ export default function ResultManagement() {
           }
           return;
         }
-        
+
         setError(
           error.response?.data?.message ||
-          error.message ||
-          "Failed to load courses"
+            error.message ||
+            "Failed to load courses"
         );
       } else {
         setError("An unexpected error occurred");
@@ -198,7 +191,112 @@ export default function ResultManagement() {
     }
   }, [centerName, fetchCourses, refreshTrigger]);
 
-  // Update score handler
+  // Add course edit handler
+  const handleEditCourse = (updatedItem: any) => {
+    if (!mounted || !checkAuth()) return;
+
+    const updateCourse = async () => {
+      try {
+        const token = getAuthToken();
+        if (!token) {
+          router.push("/auth/login/admin");
+          return;
+        }
+
+        // Update course via API
+        await axios.put(
+          "http://localhost:8000/api/course/update",
+          {
+            courseId: updatedItem.id,
+            courseName: updatedItem.name,
+            courseCode: updatedItem.code,
+            credits: updatedItem.credits,
+            department: updatedItem.department,
+          },
+          { headers: { token } }
+        );
+
+        setRefreshTrigger((prev) => prev + 1);
+        setError("");
+      } catch (error: any) {
+        console.error("Error updating course:", error);
+
+        if (axios.isAxiosError(error)) {
+          if (error.response?.status === 401) {
+            if (mounted) {
+              localStorage.removeItem("authToken");
+              localStorage.removeItem("user");
+              router.push("/auth/login/admin");
+            }
+            return;
+          }
+
+          setError(
+            error.response?.data?.message ||
+              error.message ||
+              "Failed to update course"
+          );
+        } else {
+          setError("Failed to update course");
+        }
+      }
+    };
+
+    updateCourse();
+  };
+
+  // Add course delete handler
+  const handleDeleteCourse = (id: string | number) => {
+    if (!mounted || !checkAuth()) return;
+
+    const courseId = String(id);
+    if (!courseId) {
+      setError("Course ID is required for deletion");
+      return;
+    }
+
+    const deleteCourse = async () => {
+      try {
+        const token = getAuthToken();
+        if (!token) {
+          router.push("/auth/login/admin");
+          return;
+        }
+
+        await axios.delete("http://localhost:8000/api/course/delete", {
+          headers: { token },
+          data: { courseId },
+        });
+
+        setRefreshTrigger((prev) => prev + 1);
+        setError("");
+      } catch (error: any) {
+        console.error("Error deleting course:", error);
+
+        if (axios.isAxiosError(error)) {
+          if (error.response?.status === 401) {
+            if (mounted) {
+              localStorage.removeItem("authToken");
+              localStorage.removeItem("user");
+              router.push("/auth/login/admin");
+            }
+            return;
+          }
+
+          setError(
+            error.response?.data?.message ||
+              error.message ||
+              "Failed to delete course"
+          );
+        } else {
+          setError("Failed to delete course");
+        }
+      }
+    };
+
+    deleteCourse();
+  };
+
   const handleUpdateScore = async (updatedItem: any) => {
     if (!mounted || !checkAuth()) return;
 
@@ -209,7 +307,6 @@ export default function ResultManagement() {
         return;
       }
 
-      // Validate required fields
       if (!updatedItem.scoreId) {
         setError("Score ID is required for update");
         return;
@@ -221,7 +318,7 @@ export default function ResultManagement() {
         totalObtained: Number(updatedItem.totalObtained) || 100,
         dateOfExam: updatedItem.dateOfExam || new Date().toISOString(),
         name: updatedItem.name || "Exam",
-        scoreType: updatedItem.scoreType || "FINAL"
+        scoreType: updatedItem.scoreType || "FINAL",
       };
 
       await axios.put(
@@ -230,12 +327,11 @@ export default function ResultManagement() {
         { headers: { token } }
       );
 
-      // Refresh data after update
       setRefreshTrigger((prev) => prev + 1);
-      setError(""); // Clear any previous errors
+      setError("");
     } catch (error: any) {
       console.error("Error updating score:", error);
-      
+
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 401) {
           if (mounted) {
@@ -245,11 +341,11 @@ export default function ResultManagement() {
           }
           return;
         }
-        
+
         setError(
           error.response?.data?.message ||
-          error.message ||
-          "Failed to update score"
+            error.message ||
+            "Failed to update score"
         );
       } else {
         setError("Failed to update score");
@@ -257,7 +353,6 @@ export default function ResultManagement() {
     }
   };
 
-  // Delete score handler
   const handleDeleteScore = async (id: string) => {
     if (!mounted || !checkAuth()) return;
 
@@ -273,20 +368,16 @@ export default function ResultManagement() {
         return;
       }
 
-      await axios.delete(
-        "http://localhost:8000/api/marks/delete-score",
-        {
-          headers: { token },
-          data: { scoreId: id }
-        }
-      );
+      await axios.delete("http://localhost:8000/api/marks/delete-score", {
+        headers: { token },
+        data: { scoreId: id },
+      });
 
-      // Refresh data after delete
       setRefreshTrigger((prev) => prev + 1);
-      setError(""); // Clear any previous errors
+      setError("");
     } catch (error: any) {
       console.error("Error deleting score:", error);
-      
+
       if (axios.isAxiosError(error)) {
         if (error.response?.status === 401) {
           if (mounted) {
@@ -296,11 +387,11 @@ export default function ResultManagement() {
           }
           return;
         }
-        
+
         setError(
           error.response?.data?.message ||
-          error.message ||
-          "Failed to delete score"
+            error.message ||
+            "Failed to delete score"
         );
       } else {
         setError("Failed to delete score");
@@ -308,21 +399,21 @@ export default function ResultManagement() {
     }
   };
 
-  // Trigger refresh after upload
   const triggerRefresh = useCallback(() => {
     setRefreshTrigger((prev) => prev + 1);
   }, []);
 
   const openScoresModal = useCallback((course: Course) => {
-    // Transform scores to always be an array
     const transformedCourse = {
       ...course,
-      students: course.students.map(student => ({
+      students: course.students.map((student) => ({
         ...student,
-        scores: student.scores ? 
-          (Array.isArray(student.scores) ? student.scores : [student.scores]) 
-          : []
-      }))
+        scores: student.scores
+          ? Array.isArray(student.scores)
+            ? student.scores
+            : [student.scores]
+          : [],
+      })),
     };
     setSelectedCourse(transformedCourse);
     setIsModalOpen(true);
@@ -333,7 +424,6 @@ export default function ResultManagement() {
     setSelectedCourse(null);
   }, []);
 
-  // Don't render anything until mounted (prevents hydration issues)
   if (!mounted) {
     return <Shimmer />;
   }
@@ -360,33 +450,25 @@ export default function ResultManagement() {
     );
   }
 
-  // Calculate total students across all courses
   const totalStudents = courses.reduce((total, course) => {
     return total + (course.students?.length || 0);
   }, 0);
 
-  // Transform course data for the table
-  const transformedCourses: TableCourse[] = courses.map(course => ({
+  const transformedCourses: TableCourse[] = courses.map((course) => ({
     id: course.courseId,
     name: course.courseName,
     code: course.courseCode,
     credits: course.credits,
-    teachers: course.teachers?.map(t => t.name).join(", ") || "No teachers assigned",
+    teachers:
+      course.teachers?.map((t) => t.name).join(", ") || "No teachers assigned",
     students: course.students?.length || 0,
-    department: course.students?.[0]?.department || "N/A"
+    department: course.students?.[0]?.department || "N/A",
   }));
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold text-gray-800">
-          Result Management
-        </h2>
-        {centerName && (
-          <p className="text-sm text-gray-600">
-            Center: <span className="font-medium">{centerName}</span>
-          </p>
-        )}
+        <h2 className="text-3xl font-bold text-gray-800">Result Management</h2>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -399,22 +481,43 @@ export default function ResultManagement() {
             </p>
           </div>
         </div>
-        
+
         <div className="bg-white/80 shadow-lg rounded-lg">
           <div className="p-6 text-center">
             <Users className="w-8 h-8 text-[#1B3A6A] mx-auto mb-2" />
             <h4 className="text-lg text-gray-600 mb-1">Total Students</h4>
-            <p className="text-5xl font-bold text-[#1B3A6A]">
-              {totalStudents}
-            </p>
+            <p className="text-5xl font-bold text-[#1B3A6A]">{totalStudents}</p>
           </div>
         </div>
-        
-        <UploadSection 
-          onSuccess={triggerRefresh} 
-          endpoint="/api/marks/upload-marks"
-          accept=".xlsx"
-          title="Upload Marks (Excel)"
+
+        <UploadSection
+          onSuccess={triggerRefresh}
+          uploadUrl="/api/marks/upload-marks"
+          validExtensions={[".xlsx"]}
+          schemaInfo={{
+            title: "Upload Marks(Excel)",
+            columns: ["student_id", "subject", "marks", "grade"],
+            sampleRow: ["STU001", "Mathematics", "85", "A"],
+            columnDescriptions: [
+              {
+                key: "student_id",
+                description: "Unique identifier for the student",
+              },
+              { key: "subject", description: "Subject name" },
+              { key: "marks", description: "Marks obtained (0-100)" },
+              { key: "grade", description: "Grade assigned (A, B, C, D, F)" },
+            ],
+            guidelines: [
+              "Ensure all student IDs are valid",
+              "Marks should be between 0-100",
+              "Use standard grade format (A, B, C, D, F)",
+            ],
+            commonIssues: [
+              "Invalid student ID format",
+              "Marks outside valid range",
+              "Missing required columns",
+            ],
+          }}
         />
       </div>
 
@@ -428,21 +531,23 @@ export default function ResultManagement() {
         }}
         nonEditableFields={["id", "students"]}
         hiddenColumns={["id"]}
-        customRenderers={{  
+        // onEdit={handleEditCourse}
+        // onDelete={handleDeleteCourse}
+        customRenderers={{
           students: (row) => (
-            <button 
+            <button
               onClick={() => {
-                const fullCourse = courses.find(c => c.courseId === row.id);
+                const fullCourse = courses.find((c) => c.courseId === row.id);
                 if (fullCourse) {
                   openScoresModal(fullCourse);
                 }
               }}
-              className="text-blue-600 hover:text-blue-800 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded px-1"
+              className="text-blue-600 hover:text-blue-800 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded px-1 cursor-pointer"
               disabled={row.students === 0}
             >
               {row.students} students
             </button>
-          )
+          ),
         }}
       />
 

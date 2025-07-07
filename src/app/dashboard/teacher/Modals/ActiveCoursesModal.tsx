@@ -1,7 +1,7 @@
 import React from "react";
 import { X, BookOpen, Users } from "lucide-react";
 
-import CourseDetail from "../interfaces/CourseDetails";
+import { CourseDetail } from "../interfaces/CourseDetails";
 
 interface ActiveCoursesModalProps {
   isOpen: boolean;

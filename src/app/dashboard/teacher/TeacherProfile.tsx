@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import ProfileSkeleton from "./Skeletons/Profile";
 import ActiveCoursesModal from "./Modals/ActiveCoursesModal";
-import CourseDetail from "./interfaces/CourseDetails";
+import { CourseDetail } from "./interfaces/CourseDetails";
 
 interface TeacherData {
   id: string;

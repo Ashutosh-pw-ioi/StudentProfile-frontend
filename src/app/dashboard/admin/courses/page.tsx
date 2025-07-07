@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { BookOpen, Users, Plus } from "lucide-react";
+import { BookOpen, Plus } from "lucide-react";
 import Table from "../Table";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import Shimmer from "../Shimmer";
+import StudentsModal from "./StudentsModal";
 
 interface Student {
   id: string;
@@ -85,9 +86,7 @@ export default function CourseManagement() {
   const router = useRouter();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [studentsModalOpen, setStudentsModalOpen] = useState(false);
-  const [teachersModalOpen, setTeachersModalOpen] = useState(false);
   const [currentStudents, setCurrentStudents] = useState<Student[]>([]);
-  const [currentTeachers, setCurrentTeachers] = useState<Teacher[]>([]);
   const [isAddCourseModalOpen, setIsAddCourseModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     centerName: "",
@@ -134,21 +133,22 @@ export default function CourseManagement() {
         "http://localhost:8000/api/admin/get",
         { id: adminId },
         {
-          headers: { token }
+          headers: { token },
         }
       );
 
       if (response.data.success) {
         const adminData = response.data.data;
         setUserCenter(adminData.center.name);
-        setFormData(prev => ({
+        setFormData((prev) => ({
           ...prev,
-          centerName: adminData.center.name
+          centerName: adminData.center.name,
         }));
       }
     } catch (error) {
       console.error("Error fetching admin details:", error);
-      if (error.response?.status === 401) {
+
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
         localStorage.removeItem("authToken");
         localStorage.removeItem("user");
         router.push("/auth/login/admin");
@@ -247,11 +247,9 @@ export default function CourseManagement() {
         center: updatedItem.center,
       };
 
-      await axios.put(
-        "http://localhost:8000/api/course/update",
-        updateData,
-        { headers: { token } }
-      );
+      await axios.put("http://localhost:8000/api/course/update", updateData, {
+        headers: { token },
+      });
 
       setRefreshTrigger((prev) => prev + 1);
     } catch (error: any) {
@@ -270,7 +268,7 @@ export default function CourseManagement() {
     }
   };
 
-  const handleDeleteCourse = async (id: string) => {
+  const handleDeleteCourse = async (id: string | number) => {
     try {
       const token = localStorage.getItem("authToken");
       if (!token) {
@@ -278,13 +276,12 @@ export default function CourseManagement() {
         return;
       }
 
-      await axios.delete(
-        "http://localhost:8000/api/course/delete",
-        {
-          headers: { token },
-          data: { id },
-        }
-      );
+      const courseId = typeof id === "number" ? id.toString() : id;
+
+      await axios.delete("http://localhost:8000/api/course/delete", {
+        headers: { token },
+        data: { id: courseId },
+      });
 
       setRefreshTrigger((prev) => prev + 1);
     } catch (error: any) {
@@ -306,11 +303,6 @@ export default function CourseManagement() {
   const openStudentsModal = (students: Student[]) => {
     setCurrentStudents(students);
     setStudentsModalOpen(true);
-  };
-
-  const openTeachersModal = (teachers: Teacher[]) => {
-    setCurrentTeachers(teachers);
-    setTeachersModalOpen(true);
   };
 
   const handleInputChange = (
@@ -425,7 +417,7 @@ export default function CourseManagement() {
             setError("");
             setRefreshTrigger((prev) => prev + 1);
           }}
-          className="mt-2 px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#122A4E]"
+          className="mt-2 px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#122A4E] cursor-pointer"
         >
           Retry
         </button>
@@ -435,103 +427,6 @@ export default function CourseManagement() {
 
   return (
     <div className="space-y-6">
-      {/* Students Modal */}
-      {studentsModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">
-              Students List
-            </h3>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Name
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Email
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Enrollment Number
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {currentStudents.map((student) => (
-                    <tr key={student.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {student.name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {student.email}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {student.enrollmentNumber}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div className="mt-4 flex justify-end">
-              <button
-                onClick={() => setStudentsModalOpen(false)}
-                className="px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#122A4E]"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Teachers Modal */}
-      {teachersModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">
-              Teachers List
-            </h3>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Name
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Email
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {currentTeachers.map((teacher) => (
-                    <tr key={teacher.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {teacher.name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {teacher.email}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div className="mt-4 flex justify-end">
-              <button
-                onClick={() => setTeachersModalOpen(false)}
-                className="px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#122A4E]"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Add Course Modal */}
       {isAddCourseModalOpen && (
         <div className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 max-w-md w-full">
@@ -547,7 +442,6 @@ export default function CourseManagement() {
 
             <form onSubmit={handleSubmit}>
               <div className="space-y-4">
-                {/* Center Name */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Center
@@ -560,7 +454,6 @@ export default function CourseManagement() {
                   />
                 </div>
 
-                {/* Department */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Department *
@@ -587,7 +480,6 @@ export default function CourseManagement() {
                   )}
                 </div>
 
-                {/* Batch */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Batch Name *
@@ -611,7 +503,6 @@ export default function CourseManagement() {
                   )}
                 </div>
 
-                {/* Semester */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Semester Number *
@@ -636,7 +527,6 @@ export default function CourseManagement() {
                   )}
                 </div>
 
-                {/* Course Name */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Course Name *
@@ -657,7 +547,6 @@ export default function CourseManagement() {
                   )}
                 </div>
 
-                {/* Course Code */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Course Code *
@@ -679,7 +568,6 @@ export default function CourseManagement() {
                   )}
                 </div>
 
-                {/* Credits */}
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Credits
@@ -707,14 +595,14 @@ export default function CourseManagement() {
                 <button
                   type="button"
                   onClick={() => setIsAddCourseModalOpen(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
+                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 cursor-pointer"
                   disabled={isSubmitting}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#1B3A6A] text-white rounded-md hover:bg-[#122A4E] flex items-center"
+                  className="px-4 py-2 bg-[#1B3A6A] text-white rounded-md hover:bg-[#122A4E] flex items-center cursor-pointer"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? (
@@ -752,6 +640,13 @@ export default function CourseManagement() {
       )}
 
       <div className="flex justify-between">
+        {studentsModalOpen && (
+          <StudentsModal
+            isOpen={studentsModalOpen}
+            onClose={() => setStudentsModalOpen(false)}
+            students={currentStudents}
+          />
+        )}
         <h2 className="text-3xl font-bold text-gray-800 mb-2">
           Course Management
         </h2>
@@ -771,7 +666,7 @@ export default function CourseManagement() {
         <div className="bg-white/80 shadow-lg rounded-lg flex items-center justify-center p-6">
           <button
             onClick={() => setIsAddCourseModalOpen(true)}
-            className="flex flex-col items-center justify-center w-full h-full text-[#1B3A6A] hover:text-[#122A4E] transition-colors"
+            className="flex flex-col items-center justify-center w-full h-full text-[#1B3A6A] hover:text-[#122A4E] transition-colors cursor-pointer"
           >
             <div className="bg-gray-200 rounded-full p-3 mb-2">
               <Plus size={24} />
@@ -798,18 +693,10 @@ export default function CourseManagement() {
         onEdit={handleUpdateCourse}
         onDelete={handleDeleteCourse}
         customRenderers={{
-          teachers: (item) => (
-            <button
-              onClick={() => openTeachersModal(item.teachersFull)}
-              className="text-blue-600 hover:text-blue-800 hover:underline"
-            >
-              {item.teachers}
-            </button>
-          ),
           students: (item) => (
             <button
               onClick={() => openStudentsModal(item.studentsFull)}
-              className="text-blue-600 hover:text-blue-800 hover:underline"
+              className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
             >
               {item.students} students
             </button>
