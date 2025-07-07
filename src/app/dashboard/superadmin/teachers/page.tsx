@@ -52,7 +52,8 @@ export default function TeachersManagement() {
       );
 
       const data = response.data;
-      if (!data.success) throw new Error(data.message || "Failed to load teachers");
+      if (!data.success)
+        throw new Error(data.message || "Failed to load teachers");
 
       setTeachersFull(data.teachers);
 
@@ -105,9 +106,13 @@ export default function TeachersManagement() {
         depName: updatedItem.department,
       };
 
-      await axios.put("http://localhost:8000/api/teacher/update-teacher", payload, {
-        headers: { token },
-      });
+      await axios.put(
+        "http://localhost:8000/api/teacher/update-teacher",
+        payload,
+        {
+          headers: { token },
+        }
+      );
 
       triggerRefresh();
     } catch (err: any) {
@@ -115,19 +120,34 @@ export default function TeachersManagement() {
     }
   };
 
-  const handleDeleteTeacher = async (id: string) => {
-    const token = localStorage.getItem("authToken");
-    if (!token || !selectedCenter) return;
-
+  const handleDeleteTeacher = async (id: string | number) => {
     try {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        router.push("/auth/login/admin");
+        return;
+      }
+
       await axios.delete("http://localhost:8000/api/teacher/delete-teacher", {
-        headers: { token },
-        data: { id, centerName: selectedCenter },
+        headers: {
+          token: token,
+        },
+        data: { id },
       });
 
-      triggerRefresh();
-    } catch (err: any) {
-      setError(err.message || "Error deleting teacher");
+      setRefreshTrigger((prev) => prev + 1);
+    } catch (error: any) {
+      console.error("Error deleting teacher:", error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem("authToken");
+        router.push("/auth/login/admin");
+        return;
+      }
+      setError(
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to delete teacher"
+      );
     }
   };
 

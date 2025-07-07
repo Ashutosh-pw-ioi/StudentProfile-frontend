@@ -74,7 +74,9 @@ export default function StudentManagement() {
           centerName: student.center.name,
         }));
 
-        transformedData.sort((a, b) => a.studentId.localeCompare(b.studentId));
+        transformedData.sort((a: any, b: any) =>
+          a.studentId.localeCompare(b.studentId)
+        );
         setStudentsData(transformedData);
       } else {
         throw new Error(data.message || "Failed to fetch student data");
@@ -130,23 +132,29 @@ export default function StudentManagement() {
     }
   };
 
-  const handleDeleteStudent = async (id: string) => {
+  const handleDeleteStudent = async (id: string | number) => {
     const token = localStorage.getItem("authToken");
-    if (!token) return;
+    if (!token) {
+      router.push("/auth/admin/login");
+      return;
+    }
 
     try {
       const response = await axios.delete(
         "http://localhost:8000/api/student/delete-student",
         {
-          headers: { token },
-          data: { id, centerName: selectedCenter },
+          headers: {
+            token: token,
+          },
+          data: { id: String(id) },
         }
       );
 
-      if (response.data.success) {
-        triggerRefresh();
+      const result = response.data;
+      if (result.success) {
+        setRefreshTrigger((prev) => prev + 1);
       } else {
-        throw new Error(response.data.message || "Failed to delete student");
+        throw new Error(result.message || "Failed to delete student");
       }
     } catch (err: any) {
       setError(err.message || "Error deleting student");

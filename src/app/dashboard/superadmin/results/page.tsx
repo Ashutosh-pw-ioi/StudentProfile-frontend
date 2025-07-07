@@ -96,7 +96,7 @@ export default function ResultManagement() {
 
       const response = await axios.post(
         "http://localhost:8000/api/marks/center-scores",
-        { centerName }, 
+        { centerName },
         { headers: { token } }
       );
 
@@ -111,7 +111,9 @@ export default function ResultManagement() {
       }
 
       setError(
-        error.response?.data?.message || error.message || "Failed to load courses"
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to load courses"
       );
     } finally {
       setLoading(false);
@@ -143,7 +145,7 @@ export default function ResultManagement() {
         totalObtained: Number(updatedItem.totalObtained) || 100,
         dateOfExam: updatedItem.dateOfExam || new Date().toISOString(),
         name: updatedItem.name || "Exam",
-        scoreType: updatedItem.scoreType || "FINAL"
+        scoreType: updatedItem.scoreType || "FINAL",
       };
 
       await axios.put(
@@ -164,7 +166,9 @@ export default function ResultManagement() {
       }
 
       setError(
-        error.response?.data?.message || error.message || "Failed to update score"
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to update score"
       );
     }
   };
@@ -181,7 +185,7 @@ export default function ResultManagement() {
 
       await axios.delete("http://localhost:8000/api/marks/delete-score", {
         headers: { token },
-        data: { scoreId: id }
+        data: { scoreId: id },
       });
 
       setRefreshTrigger((prev) => prev + 1);
@@ -196,22 +200,28 @@ export default function ResultManagement() {
       }
 
       setError(
-        error.response?.data?.message || error.message || "Failed to delete score"
+        error.response?.data?.message ||
+          error.message ||
+          "Failed to delete score"
       );
     }
   };
 
+  const triggerRefresh = useCallback(() => {
+    setRefreshTrigger((prev) => prev + 1);
+  }, []);
+
   const openScoresModal = useCallback((course: Course) => {
     const transformedCourse = {
       ...course,
-      students: course.students.map(student => ({
+      students: course.students.map((student) => ({
         ...student,
         scores: student.scores
           ? Array.isArray(student.scores)
             ? student.scores
             : [student.scores]
-          : []
-      }))
+          : [],
+      })),
     };
     setSelectedCourse(transformedCourse);
     setIsModalOpen(true);
@@ -247,14 +257,15 @@ export default function ResultManagement() {
     0
   );
 
-  const transformedCourses: TableCourse[] = courses.map(course => ({
+  const transformedCourses: TableCourse[] = courses.map((course) => ({
     id: course.courseId,
     name: course.courseName,
     code: course.courseCode,
     credits: course.credits,
-    teachers: course.teachers?.map(t => t.name).join(", ") || "No teachers assigned",
+    teachers:
+      course.teachers?.map((t) => t.name).join(", ") || "No teachers assigned",
     students: course.students?.length || 0,
-    department: course.students?.[0]?.department || "N/A"
+    department: course.students?.[0]?.department || "N/A",
   }));
 
   return (
@@ -273,7 +284,9 @@ export default function ResultManagement() {
           <div className="p-6 text-center">
             <BookOpen className="w-8 h-8 text-[#1B3A6A] mx-auto mb-2" />
             <h4 className="text-lg text-gray-600 mb-1">Total Courses</h4>
-            <p className="text-5xl font-bold text-[#1B3A6A]">{courses.length}</p>
+            <p className="text-5xl font-bold text-[#1B3A6A]">
+              {courses.length}
+            </p>
           </div>
         </div>
 
@@ -286,10 +299,33 @@ export default function ResultManagement() {
         </div>
 
         <UploadSection
-          onSuccess={() => setRefreshTrigger(prev => prev + 1)}
-          endpoint="/api/marks/upload-marks"
-          accept=".xlsx"
-          title="Upload Marks (Excel)"
+          onSuccess={triggerRefresh}
+          uploadUrl="/api/marks/upload-marks"
+          validExtensions={[".xlsx"]}
+          schemaInfo={{
+            title: "Upload Marks(Excel)",
+            columns: ["student_id", "subject", "marks", "grade"],
+            sampleRow: ["STU001", "Mathematics", "85", "A"],
+            columnDescriptions: [
+              {
+                key: "student_id",
+                description: "Unique identifier for the student",
+              },
+              { key: "subject", description: "Subject name" },
+              { key: "marks", description: "Marks obtained (0-100)" },
+              { key: "grade", description: "Grade assigned (A, B, C, D, F)" },
+            ],
+            guidelines: [
+              "Ensure all student IDs are valid",
+              "Marks should be between 0-100",
+              "Use standard grade format (A, B, C, D, F)",
+            ],
+            commonIssues: [
+              "Invalid student ID format",
+              "Marks outside valid range",
+              "Missing required columns",
+            ],
+          }}
         />
       </div>
 
@@ -299,15 +335,15 @@ export default function ResultManagement() {
         filterField="department"
         badgeFields={["department"]}
         selectFields={{
-          department: ["SOT", "SOM", "SOH"]
+          department: ["SOT", "SOM", "SOH"],
         }}
         nonEditableFields={["id", "students"]}
         hiddenColumns={["id"]}
         customRenderers={{
-          students: row => (
+          students: (row) => (
             <button
               onClick={() => {
-                const fullCourse = courses.find(c => c.courseId === row.id);
+                const fullCourse = courses.find((c) => c.courseId === row.id);
                 if (fullCourse) openScoresModal(fullCourse);
               }}
               className="text-blue-600 hover:text-blue-800 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded px-1"
@@ -315,7 +351,7 @@ export default function ResultManagement() {
             >
               {row.students} students
             </button>
-          )
+          ),
         }}
       />
 

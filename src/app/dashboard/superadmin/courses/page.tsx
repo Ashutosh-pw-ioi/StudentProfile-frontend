@@ -98,13 +98,13 @@ export default function CourseManagement() {
     try {
       const userData = JSON.parse(user);
       setRole(userData.role);
-      
+
       // Get center from localStorage
       const storedCenter = localStorage.getItem("selectedCenter") || centers[0];
       setSelectedCenter(storedCenter);
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        centerName: storedCenter
+        centerName: storedCenter,
       }));
     } catch (error) {
       console.error("Error parsing user data:", error);
@@ -187,11 +187,9 @@ export default function CourseManagement() {
         center: updatedItem.center,
       };
 
-      await axios.put(
-        "http://localhost:8000/api/course/update",
-        updateData,
-        { headers: { token } }
-      );
+      await axios.put("http://localhost:8000/api/course/update", updateData, {
+        headers: { token },
+      });
 
       setRefreshTrigger((prev) => prev + 1);
     } catch (error: any) {
@@ -204,22 +202,30 @@ export default function CourseManagement() {
     }
   };
 
-  const handleDeleteCourse = async (id: string) => {
+  const handleDeleteCourse = async (id: string | number) => {
     try {
       const token = localStorage.getItem("authToken");
-      if (!token) return;
+      if (!token) {
+        router.push("/auth/login/admin");
+        return;
+      }
 
-      await axios.delete(
-        "http://localhost:8000/api/course/delete",
-        {
-          headers: { token },
-          data: { id },
-        }
-      );
+      const courseId = typeof id === "number" ? id.toString() : id;
+
+      await axios.delete("http://localhost:8000/api/course/delete", {
+        headers: { token },
+        data: { id: courseId },
+      });
 
       setRefreshTrigger((prev) => prev + 1);
     } catch (error: any) {
       console.error("Error deleting course:", error);
+      if (error.response?.status === 401) {
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("user");
+        router.push("/auth/login/admin");
+        return;
+      }
       setError(
         error.response?.data?.message ||
           error.message ||
@@ -336,7 +342,7 @@ export default function CourseManagement() {
     const center = e.target.value;
     setSelectedCenter(center);
     localStorage.setItem("selectedCenter", center);
-    setFormData(prev => ({ ...prev, centerName: center }));
+    setFormData((prev) => ({ ...prev, centerName: center }));
   };
 
   if (loading) {
@@ -683,17 +689,19 @@ export default function CourseManagement() {
         <h2 className="text-3xl font-bold text-gray-800 mb-2">
           Course Management
         </h2>
-        
+
         {role === "SUPER_ADMIN" && (
           <div className="flex items-center space-x-2">
             <label className="text-gray-700">Select Center:</label>
-            <select 
-              value={selectedCenter} 
+            <select
+              value={selectedCenter}
               onChange={handleCenterChange}
               className="border border-gray-300 p-2 rounded-md"
             >
-              {centers.map(center => (
-                <option key={center} value={center}>{center}</option>
+              {centers.map((center) => (
+                <option key={center} value={center}>
+                  {center}
+                </option>
               ))}
             </select>
           </div>

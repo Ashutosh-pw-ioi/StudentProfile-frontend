@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { Users, Plus } from "lucide-react";
 import Table from "../Table";
 import { useRouter } from "next/navigation";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import Shimmer from "../Shimmer";
 
 interface Student {
@@ -91,13 +91,13 @@ export default function BatchManagement() {
     try {
       const userData = JSON.parse(user);
       setRole(userData.role);
-      
+
       // Get center from localStorage
       const storedCenter = localStorage.getItem("selectedCenter") || centers[0];
       setSelectedCenter(storedCenter);
-      setFormData(prev => ({
+      setFormData((prev) => ({
         ...prev,
-        centerName: storedCenter
+        centerName: storedCenter,
       }));
     } catch (error) {
       console.error("Error parsing user data:", error);
@@ -144,7 +144,10 @@ export default function BatchManagement() {
         department: batch.departmentName || "",
         center: batch.centerName || "",
         students: batch.students?.length || 0,
-        teachers: batch.teachers?.length || "No teachers",
+        teachers:
+          batch.teachers?.length > 0
+            ? batch.teachers.length.toString()
+            : "No teachers",
         teachersFull: batch.teachers || [],
         studentsFull: batch.students || [],
       }));
@@ -176,59 +179,101 @@ export default function BatchManagement() {
     }
   }, [fetchBatches, refreshTrigger, selectedCenter]);
 
-  const handleUpdateBatch = async (updatedItem: TableBatch) => {
-    try {
-      const token = localStorage.getItem("authToken");
-      if (!token) return;
+  const handleUpdateBatch = (updatedItem: any) => {
+    const batchItem = updatedItem as TableBatch;
 
-      const updateData = {
-        batchId: updatedItem.id,
-        batchName: updatedItem.name,
-      };
+    const updateBatch = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        if (!token) {
+          router.push("/auth/login/admin");
+          return;
+        }
 
-      await axios.put(
-        "http://localhost:8000/api/batch/update",
-        updateData,
-        { headers: { token } }
-      );
+        const updateData = {
+          batchId: batchItem.id,
+          batchName: batchItem.name,
+        };
 
-      setRefreshTrigger((prev) => prev + 1);
-    } catch (error: any) {
-      console.error("Error updating batch:", error);
-      setError(
-        error.response?.data?.message ||
-          error.message ||
-          "Failed to update batch"
-      );
-    }
+        const response = await axios.put(
+          "http://localhost:8000/api/batch/update",
+          updateData,
+          { headers: { token } }
+        );
+
+        if (response.status === 200) {
+          setRefreshTrigger((prev) => prev + 1);
+        }
+      } catch (error) {
+        console.error("Error updating batch:", error);
+
+        if (error instanceof AxiosError && error.response?.status === 401) {
+          localStorage.removeItem("authToken");
+          localStorage.removeItem("user");
+          router.push("/auth/login/admin");
+          return;
+        }
+
+        const errorMessage =
+          error instanceof AxiosError
+            ? error.response?.data?.message || error.message
+            : error instanceof Error
+            ? error.message
+            : "Failed to update batch";
+        setError(errorMessage);
+      }
+    };
+
+    updateBatch();
   };
 
-  const handleDeleteBatch = async (id: string) => {
+  const handleDeleteBatch = (id: string | number) => {
+    const deleteId = typeof id === "number" ? id.toString() : id;
+
     if (!window.confirm("Are you sure you want to delete this batch?")) {
       return;
     }
 
-    try {
-      const token = localStorage.getItem("authToken");
-      if (!token) return;
-
-      await axios.delete(
-        "http://localhost:8000/api/batch/delete",
-        {
-          headers: { token },
-          data: { batchId: id },
+    const deleteBatch = async () => {
+      try {
+        const token = localStorage.getItem("authToken");
+        if (!token) {
+          router.push("/auth/login/admin");
+          return;
         }
-      );
 
-      setRefreshTrigger((prev) => prev + 1);
-    } catch (error: any) {
-      console.error("Error deleting batch:", error);
-      setError(
-        error.response?.data?.message ||
-          error.message ||
-          "Failed to delete batch"
-      );
-    }
+        const response = await axios.delete(
+          "http://localhost:8000/api/batch/delete",
+          {
+            headers: { token },
+            data: { batchId: deleteId },
+          }
+        );
+
+        if (response.status === 200) {
+          setRefreshTrigger((prev) => prev + 1);
+        }
+      } catch (error) {
+        console.error("Error deleting batch:", error);
+
+        if (error instanceof AxiosError && error.response?.status === 401) {
+          localStorage.removeItem("authToken");
+          localStorage.removeItem("user");
+          router.push("/auth/login/admin");
+          return;
+        }
+
+        const errorMessage =
+          error instanceof AxiosError
+            ? error.response?.data?.message || error.message
+            : error instanceof Error
+            ? error.message
+            : "Failed to delete batch";
+        setError(errorMessage);
+      }
+    };
+
+    deleteBatch();
   };
 
   const openStudentsModal = (students: Student[]) => {
@@ -289,11 +334,9 @@ export default function BatchManagement() {
         batchName: formData.batchName,
       };
 
-      await axios.post(
-        "http://localhost:8000/api/batch/create",
-        payload,
-        { headers: { token } }
-      );
+      await axios.post("http://localhost:8000/api/batch/create", payload, {
+        headers: { token },
+      });
 
       setIsAddBatchModalOpen(false);
       setRefreshTrigger((prev) => prev + 1);
@@ -318,7 +361,7 @@ export default function BatchManagement() {
     const center = e.target.value;
     setSelectedCenter(center);
     localStorage.setItem("selectedCenter", center);
-    setFormData(prev => ({ ...prev, centerName: center }));
+    setFormData((prev) => ({ ...prev, centerName: center }));
   };
 
   const handleOpenAddModal = () => {
@@ -595,17 +638,19 @@ export default function BatchManagement() {
         <h2 className="text-3xl font-bold text-gray-800 mb-2">
           Batch Management
         </h2>
-        
+
         {role === "SUPER_ADMIN" && (
           <div className="flex items-center space-x-2">
             <label className="text-gray-700">Select Center:</label>
-            <select 
-              value={selectedCenter} 
+            <select
+              value={selectedCenter}
               onChange={handleCenterChange}
               className="border border-gray-300 p-2 rounded-md"
             >
-              {centers.map(center => (
-                <option key={center} value={center}>{center}</option>
+              {centers.map((center) => (
+                <option key={center} value={center}>
+                  {center}
+                </option>
               ))}
             </select>
           </div>
