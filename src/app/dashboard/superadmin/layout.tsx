@@ -112,7 +112,7 @@ const SuperAdminLayout = ({ children }: { children: React.ReactNode }) => {
 
   const handleLogout = () => {
     console.log("Logout clicked");
-    router.push("/auth/admin/login");
+    router.push("/auth/login/admin");
   };
 
   return (
