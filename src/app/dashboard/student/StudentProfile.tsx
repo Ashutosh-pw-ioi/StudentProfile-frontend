@@ -4,6 +4,8 @@ import React, { useEffect, useState } from "react";
 import { User, ArrowUpRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import StudentProfileSkeleton from "./Skeletons/Profile";
+import attendanceData from "./constants/AttendanceData";
 
 interface ApiResponse {
   success: boolean;
@@ -34,65 +36,6 @@ interface StudentData {
   cgpa?: number;
   attendance?: number;
   rollNo?: string;
-}
-
-interface AttendanceData {
-  course: string;
-  percent: number;
-  present: number;
-  total: number;
-  absent: number;
-}
-
-function StudentProfileSkeleton() {
-  const shimmerBox = "bg-gray-200 rounded animate-shimmer";
-
-  return (
-    <div className="space-y-6">
-      <div className="h-8 w-48 bg-gray-200 rounded animate-shimmer" />
-
-      <div className="bg-white/80 p-8 rounded-lg shadow">
-        <div className="flex items-center space-x-6">
-          <div className={`w-24 h-24 ${shimmerBox} rounded-full`} />
-          <div className="space-y-2">
-            <div className="h-6 w-40 bg-gray-200 rounded animate-shimmer" />
-            <div className="flex gap-2">
-              <div className="h-6 w-20 bg-gray-200 rounded-full animate-shimmer" />
-              <div className="h-6 w-20 bg-gray-200 rounded-full animate-shimmer" />
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {[...Array(3)].map((_, i) => (
-          <div key={i} className="bg-white/80 p-6 rounded-lg shadow">
-            <div className="h-4 w-24 bg-gray-200 mx-auto mb-4 rounded animate-shimmer" />
-            <div className="h-6 w-16 bg-gray-300 mx-auto rounded animate-shimmer" />
-          </div>
-        ))}
-      </div>
-
-      <div className="bg-white/80 p-6 rounded-lg shadow">
-        <div className="h-6 w-48 bg-gray-300 mb-6 rounded animate-shimmer" />
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {[...Array(2)].map((_, col) => (
-            <div key={col} className="space-y-4">
-              {[...Array(4)].map((_, row) => (
-                <div
-                  key={row}
-                  className="flex justify-between border-b py-2 border-gray-100"
-                >
-                  <div className="h-4 w-24 bg-gray-200 rounded animate-shimmer" />
-                  <div className="h-4 w-32 bg-gray-200 rounded animate-shimmer" />
-                </div>
-              ))}
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
 }
 
 export default function StudentProfile() {
@@ -158,37 +101,6 @@ export default function StudentProfile() {
       fetchStudentData();
     }
   }, [tokenPresent, router]);
-
-  const attendanceData: AttendanceData[] = [
-    {
-      course: "Data Structures & Algorithms",
-      percent: 85,
-      present: 34,
-      total: 40,
-      absent: 6,
-    },
-    {
-      course: "Machine Learning",
-      percent: 72,
-      present: 26,
-      total: 36,
-      absent: 10,
-    },
-    {
-      course: "Database Management",
-      percent: 90,
-      present: 27,
-      total: 30,
-      absent: 3,
-    },
-    {
-      course: "Software Engineering",
-      percent: 78,
-      present: 25,
-      total: 32,
-      absent: 7,
-    },
-  ];
 
   if (!tokenPresent) {
     return null;

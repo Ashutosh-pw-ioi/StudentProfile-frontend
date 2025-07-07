@@ -70,7 +70,7 @@ const Table: React.FC<TableProps> = ({
   const [currentPage, setCurrentPage] = useState(1);
   const [listData, setListData] = useState<GenericTableItem[]>(data);
 
-  
+  // Debounce implementation
   useEffect(() => {
     const handler = setTimeout(() => {
       setDebouncedSearchTerm(searchTerm);
@@ -398,7 +398,7 @@ const Table: React.FC<TableProps> = ({
               <h3 className="text-xl font-bold text-gray-800">Edit Record</h3>
               <button
                 onClick={closeEditModal}
-                className="p-1 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
                 title="Close"
               >
                 <X className="w-5 h-5 text-gray-500" />
@@ -428,13 +428,13 @@ const Table: React.FC<TableProps> = ({
                 <button
                   type="button"
                   onClick={closeEditModal}
-                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+                  className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#122A4E] transition-colors cursor-pointer"
+                  className="px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#122A4E] transition-colors"
                 >
                   Save Changes
                 </button>
@@ -455,7 +455,7 @@ const Table: React.FC<TableProps> = ({
               </h3>
               <button
                 onClick={closeDeleteModal}
-                className="p-1 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+                className="p-1 hover:bg-gray-100 rounded-full transition-colors"
                 title="Close"
               >
                 <X className="w-5 h-5 text-gray-500" />
@@ -474,13 +474,13 @@ const Table: React.FC<TableProps> = ({
             <div className="flex justify-end space-x-4 p-6 border-t border-gray-200 bg-gray-50">
               <button
                 onClick={closeDeleteModal}
-                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+                className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors"
               >
                 Cancel
               </button>
               <button
                 onClick={handleConfirmDelete}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors cursor-pointer"
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
               >
                 Delete
               </button>
@@ -589,7 +589,7 @@ const Table: React.FC<TableProps> = ({
                         {onEdit && (
                           <button
                             onClick={() => handleEditClick(item)}
-                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                            className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
                             title="Edit"
                           >
                             <Edit className="w-4 h-4" />
@@ -598,7 +598,7 @@ const Table: React.FC<TableProps> = ({
                         {onDelete && (
                           <button
                             onClick={() => handleDeleteClick(item.id)}
-                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                            className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                             title="Delete"
                           >
                             <Trash2 className="w-4 h-4" />
@@ -634,7 +634,7 @@ const Table: React.FC<TableProps> = ({
                     setCurrentPage((prev) => Math.max(prev - 1, 1))
                   }
                   disabled={currentPage === 1}
-                  className="px-3 py-2 rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed bg-[#1B3A6A] text-white hover:bg-[#2d4f7a] transition-colors duration-200 cursor-pointer"
+                  className="px-3 py-2 rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed bg-[#1B3A6A] text-white hover:bg-[#2d4f7a] transition-colors duration-200"
                 >
                   Previous
                 </button>
@@ -643,7 +643,7 @@ const Table: React.FC<TableProps> = ({
                     setCurrentPage((prev) => Math.min(prev + 1, totalPages))
                   }
                   disabled={currentPage === totalPages}
-                  className="px-3 py-2 rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed bg-[#1B3A6A] text-white hover:bg-[#2d4f7a] transition-colors duration-200 cursor-pointer"
+                  className="px-3 py-2 rounded-lg text-sm disabled:opacity-50 disabled:cursor-not-allowed bg-[#1B3A6A] text-white hover:bg-[#2d4f7a] transition-colors duration-200"
                 >
                   Next
                 </button>

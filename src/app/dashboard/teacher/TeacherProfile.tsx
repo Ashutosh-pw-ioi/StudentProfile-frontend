@@ -1,20 +1,12 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { User, ArrowUpRight, X, BookOpen, Users } from "lucide-react";
+import { User, ArrowUpRight } from "lucide-react";
 import { useRouter } from "next/navigation";
 import axios from "axios";
-
-interface CourseDetail {
-  id: string;
-  name: string;
-  code: string;
-  credits: number;
-  studentsCount: number;
-  semester: number;
-  batch: string;
-  department: string;
-}
+import ProfileSkeleton from "./Skeletons/Profile";
+import ActiveCoursesModal from "./Modals/ActiveCoursesModal";
+import { CourseDetail } from "./interfaces/CourseDetails";
 
 interface TeacherData {
   id: string;
@@ -31,61 +23,6 @@ interface TeacherData {
     coursesDetails: CourseDetail[];
   };
 }
-
-const ProfileSkeleton = () => (
-  <div className="space-y-6 relative">
-    <div className="h-10 bg-gray-200 rounded w-1/3 mb-8 animate-pulse"></div>
-    
-    <div className="bg-white/80 backdrop-blur-sm shadow-lg rounded-lg border-0 p-8">
-      <div className="flex items-center space-x-6">
-        <div className="w-24 h-24 bg-gray-200 rounded-full animate-pulse"></div>
-        <div className="space-y-3">
-          <div className="h-8 bg-gray-200 rounded w-48 animate-pulse"></div>
-          <div className="h-6 bg-gray-200 rounded w-32 animate-pulse"></div>
-        </div>
-      </div>
-    </div>
-
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {[1, 2].map((item) => (
-        <div 
-          key={item}
-          className="bg-white/80 backdrop-blur-sm shadow-lg rounded-lg border-0 text-center py-6"
-        >
-          <div className="h-5 bg-gray-200 rounded w-3/4 mx-auto mb-4 animate-pulse"></div>
-          <div className="h-10 bg-gray-200 rounded w-1/4 mx-auto animate-pulse"></div>
-        </div>
-      ))}
-    </div>
-
-    <div className="bg-white/80 backdrop-blur-sm shadow-lg rounded-lg border-0 p-6">
-      <div className="h-6 bg-gray-200 rounded w-1/4 mb-6 animate-pulse"></div>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-6">
-        {[1, 2, 3, 4].map((item) => (
-          <div 
-            key={item} 
-            className="flex items-center justify-between py-2 border-b border-gray-100"
-          >
-            <div className="h-4 bg-gray-200 rounded w-1/4 animate-pulse"></div>
-            <div className="h-5 bg-gray-200 rounded w-1/3 animate-pulse"></div>
-          </div>
-        ))}
-      </div>
-    </div>
-
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      {[1, 2].map((item) => (
-        <div 
-          key={item}
-          className="bg-white/80 backdrop-blur-sm shadow-lg rounded-lg border-0 text-center py-6"
-        >
-          <div className="h-5 bg-gray-200 rounded w-3/4 mx-auto mb-4 animate-pulse"></div>
-          <div className="h-16 bg-gray-200 rounded w-1/4 mx-auto animate-pulse"></div>
-        </div>
-      ))}
-    </div>
-  </div>
-);
 
 export default function TeacherProfile() {
   const [showActiveCourses, setShowActiveCourses] = useState(false);
@@ -105,7 +42,7 @@ export default function TeacherProfile() {
 
         const response = await axios.get(
           "http://localhost:8000/api/teacher/teacher-profile",
-          { headers: { "token": token } }
+          { headers: { token: token } }
         );
 
         if (response.data.success) {
@@ -235,7 +172,7 @@ export default function TeacherProfile() {
         <div className="bg-white/80 backdrop-blur-sm shadow-lg rounded-lg border-0 relative">
           <button
             onClick={() => setShowActiveCourses(true)}
-            className="absolute top-4 right-4 text-[#1B3A6A]"
+            className="absolute top-4 right-4 text-[#1B3A6A] cursor-pointer"
             aria-label="View Active Courses"
           >
             <ArrowUpRight className="w-5 h-5" />
@@ -266,77 +203,11 @@ export default function TeacherProfile() {
         </div>
       </div>
 
-      {showActiveCourses && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg max-w-4xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-gray-200 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <BookOpen className="w-6 h-6 text-[#1B3A6A]" />
-                <h3 className="text-2xl font-bold text-gray-800">
-                  Active Courses
-                </h3>
-              </div>
-              <button
-                onClick={() => setShowActiveCourses(false)}
-                className="text-gray-500 hover:text-gray-700"
-              >
-                <X className="w-6 h-6" />
-              </button>
-            </div>
-
-            <div className="p-6 grid gap-4">
-              {teacherData.statistics?.coursesDetails?.map((course) => (
-                <div
-                  key={course.id}
-                  className="bg-[#FFD990] rounded-lg p-6 border hover:shadow-md transition-shadow"
-                >
-                  <div className="flex items-end justify-between">
-                    <div>
-                      <div className="flex items-center gap-3 mb-3">
-                        <h4 className="text-xl font-bold text-gray-800">
-                          {course.name}
-                        </h4>
-                        <span className="text-sm px-3 py-1 bg-[#D4E3F5] text-[#1B3A6A] rounded-full font-medium">
-                          {course.code}
-                        </span>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-bold text-[#1B3A6A]">
-                              Batch:
-                            </span>
-                            <span className="text-sm text-gray-800">
-                              {course.batch}
-                            </span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-bold text-[#1B3A6A]">
-                              Semester:
-                            </span>
-                            <span className="text-sm text-gray-800">
-                              {course.semester}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <Users className="w-4 h-4 text-[#1B3A6A]" />
-                      <div className="text-sm font-medium text-gray-600">
-                        Students
-                      </div>
-                      <div className="text-3xl font-bold text-[#1B3A6A]">
-                        {course.studentsCount}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              )) || <p className="text-center py-8">No active courses found</p>}
-            </div>
-          </div>
-        </div>
-      )}
+      <ActiveCoursesModal
+        isOpen={showActiveCourses}
+        onClose={() => setShowActiveCourses(false)}
+        courses={teacherData.statistics?.coursesDetails || []}
+      />
     </div>
   );
 }

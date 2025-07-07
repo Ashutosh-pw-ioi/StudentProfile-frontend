@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { User, GraduationCap, HelpCircle, LogOut, Menu, X } from "lucide-react";
+import Image from "next/image";
 
 const StudentLayout = ({ children }: { children: React.ReactNode }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -116,7 +117,12 @@ const StudentLayout = ({ children }: { children: React.ReactNode }) => {
           }`}
       >
         <div className="p-6 border-b border-white/20 bg-[#D9A864] md:bg-transparent mb-4 md:mb-0">
-          <img src="/PWIOILogo.webp" className="w-40" />
+          <Image
+            src="/PWIOILogo.webp"
+            alt="PW IOI Logo"
+            width={160}
+            height={0}
+          />
         </div>
 
         <nav className="flex-1 p-4 space-y-2">

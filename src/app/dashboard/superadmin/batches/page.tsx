@@ -1,10 +1,10 @@
 import type { Metadata } from 'next';
-import ResultManagement from './ResultManagement';
+import BatchManagement from './BatchManagement';
 
 export const metadata: Metadata = {
-  title: 'Result Management'
+  title: 'Batch Management',
 };
 
 export default function Page() {
-  return <ResultManagement />;
+  return <BatchManagement />;
 }
