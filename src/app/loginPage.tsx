@@ -4,6 +4,7 @@ import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 
 interface LoginPageProps {
   role: "student" | "admin" | "teacher";
@@ -71,7 +72,7 @@ export default function LoginPage({
 
     if (!email.trim()) {
       toast.error("Please enter your email address", {
-        toastId: "email-required", 
+        toastId: "email-required",
       });
       return;
     }
@@ -321,8 +322,10 @@ export default function LoginPage({
         </div>
 
         <div className="hidden md:block w-[55%]">
-          <img
+          <Image
             src={imagePath}
+            width={500}
+            height={500}
             className="w-full h-full object-cover"
             alt={`${config.title} illustration`}
             onError={(e) => {

@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
-import ResultManagement from './ResultManagement';
+import CourseManagement from './CourseManagement';
 
 export const metadata: Metadata = {
-  title: 'Result Management'
+  title: 'Course Management',
+
 };
 
 export default function Page() {
-  return <ResultManagement />;
+  return <CourseManagement />;
 }

@@ -11,6 +11,7 @@ import {
   BookOpen,
   Upload,
 } from "lucide-react";
+import Image from "next/image";
 
 const TeacherLayout = ({ children }: { children: React.ReactNode }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -19,13 +20,12 @@ const TeacherLayout = ({ children }: { children: React.ReactNode }) => {
   const router = useRouter();
 
   useEffect(() => {
-      const token = localStorage.getItem('authToken');
-      setTokenPresent(!!token)
-      if (!token) {
-        
-        router.push('/auth/login/teacher');
-      }
-    }, [router]);
+    const token = localStorage.getItem("authToken");
+    setTokenPresent(!!token);
+    if (!token) {
+      router.push("/auth/login/teacher");
+    }
+  }, [router]);
 
   const menuItems = [
     { id: "profile", label: "Profile", icon: User, href: "/dashboard/teacher" },
@@ -96,8 +96,8 @@ const TeacherLayout = ({ children }: { children: React.ReactNode }) => {
   };
   if (!tokenPresent) {
     console.log(tokenPresent);
-    
-    return null
+
+    return null;
   }
 
   return (
@@ -134,7 +134,12 @@ const TeacherLayout = ({ children }: { children: React.ReactNode }) => {
           }`}
       >
         <div className="p-6 border-b border-white/20 bg-[#D9A864] md:bg-transparent mb-4 md:mb-0">
-          <img src="/PWIOILogo.webp" className="w-40" />
+          <Image
+            src="/PWIOILogo.webp"
+            alt="PW IOI Logo"
+            width={160}
+            height={0}
+          />
         </div>
 
         <nav className="flex-1 p-4 space-y-2">

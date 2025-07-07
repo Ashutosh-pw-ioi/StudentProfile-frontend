@@ -13,6 +13,7 @@ import {
   FileText,
   Calendar,
 } from "lucide-react";
+import Image from "next/image";
 
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -141,7 +142,12 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
           }`}
       >
         <div className="p-6 border-b border-white/20 bg-[#D9A864] md:bg-transparent mb-4 md:mb-0">
-          <img src="/PWIOILogo.webp" className="w-40" />
+          <Image
+            src="/PWIOILogo.webp"
+            alt="PW IOI Logo"
+            width={160}
+            height={0}
+          />
         </div>
 
         <nav className="flex-1 p-4 space-y-2 overflow-y-auto">
