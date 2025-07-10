@@ -21,6 +21,7 @@ interface UploadSectionProps {
     columnDescriptions: { key: string; description: string }[];
     guidelines: string[];
     commonIssues: string[];
+    downloadLink: string;
   };
   fileSizeLimit?: number;
   validTypes?: string[];
@@ -83,7 +84,9 @@ export default function UploadSection({
     if (!isValidType) {
       setUploadStatus("error");
       setErrorMessage(
-        `Invalid file type. Only ${validExtensions.join(", ")} files are allowed.`
+        `Invalid file type. Only ${validExtensions.join(
+          ", "
+        )} files are allowed.`
       );
       setUploadedFile(null);
       return;
@@ -288,9 +291,7 @@ export default function UploadSection({
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                  {dragActive
-                    ? "Drop your Excel file here"
-                    : "Upload Data"}
+                  {dragActive ? "Drop your Excel file here" : "Upload Data"}
                 </h3>
                 <p className="text-gray-600 mb-2 text-sm">
                   Drag and drop your Excel file here, or click to browse
@@ -309,6 +310,7 @@ export default function UploadSection({
         <SchemaHelpModal
           setShowSchemaHelp={setShowSchemaHelp}
           schemaInfo={schemaInfo}
+          downloadLink={schemaInfo.downloadLink}
         />
       )}
     </div>

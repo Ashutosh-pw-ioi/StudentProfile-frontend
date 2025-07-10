@@ -52,6 +52,8 @@ const teacherSchemaInfo = {
     "Invalid experience values (should be a number)",
     "Course not found in the specified batch",
   ],
+  downloadLink:
+    "https://glqns72ea6.ufs.sh/f/35ZKzNsv5By61oPdNSQHWyStvbcNAs0uUq6hILf7wZlnmxj8",
 };
 
 export default teacherSchemaInfo;

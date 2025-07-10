@@ -21,6 +21,7 @@ interface UploadSectionProps {
     columnDescriptions: { key: string; description: string }[];
     guidelines: string[];
     commonIssues: string[];
+    downloadLink: string;
   };
   fileSizeLimit?: number;
   validTypes?: string[];
@@ -83,7 +84,9 @@ export default function UploadSection({
     if (!isValidType) {
       setUploadStatus("error");
       setErrorMessage(
-        `Invalid file type. Only ${validExtensions.join(", ")} files are allowed.`
+        `Invalid file type. Only ${validExtensions.join(
+          ", "
+        )} files are allowed.`
       );
       setUploadedFile(null);
       return;
@@ -205,7 +208,7 @@ export default function UploadSection({
                 <p className="text-gray-600 mb-2">{successMessage}</p>
                 <button
                   onClick={removeFile}
-                  className="px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#486AA0] transition-colors relative z-10"
+                  className="px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#486AA0] transition-colors relative z-10 cursor-pointer"
                 >
                   Upload Another File
                 </button>
@@ -223,7 +226,7 @@ export default function UploadSection({
                 <p className="text-red-600 mb-2">{errorMessage}</p>
                 <button
                   onClick={removeFile}
-                  className="px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#486AA0] transition-colors relative z-10"
+                  className="px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#486AA0] transition-colors relative z-10 cursor-pointer"
                 >
                   Try Again
                 </button>
@@ -260,13 +263,13 @@ export default function UploadSection({
                 <div className="flex justify-center gap-3">
                   <button
                     onClick={removeFile}
-                    className="px-4 py-2 text-[#1B3A6A] border border-[#1B3A6A] rounded-lg hover:bg-gray-100 transition-colors relative z-10"
+                    className="px-4 py-2 text-[#1B3A6A] border border-[#1B3A6A] rounded-lg hover:bg-gray-100 transition-colors relative z-10 cursor-pointer"
                   >
                     Remove
                   </button>
                   <button
                     onClick={uploadFile}
-                    className="px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#486AA0] transition-colors relative z-10"
+                    className="px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#486AA0] transition-colors relative z-10 cursor-pointer"
                   >
                     Upload Data
                   </button>
@@ -288,9 +291,7 @@ export default function UploadSection({
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">
-                  {dragActive
-                    ? "Drop your Excel file here"
-                    : "Upload Data"}
+                  {dragActive ? "Drop your Excel file here" : "Upload Data"}
                 </h3>
                 <p className="text-gray-600 mb-2 text-sm">
                   Drag and drop your Excel file here, or click to browse
@@ -309,6 +310,7 @@ export default function UploadSection({
         <SchemaHelpModal
           setShowSchemaHelp={setShowSchemaHelp}
           schemaInfo={schemaInfo}
+          downloadLink={schemaInfo.downloadLink}
         />
       )}
     </div>

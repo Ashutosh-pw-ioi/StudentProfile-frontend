@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { X } from "lucide-react";
+import { Download, X } from "lucide-react";
 
 interface ColumnDescription {
   key: string;
@@ -20,11 +20,22 @@ interface SchemaInfo {
 interface SchemaHelpModalProps {
   setShowSchemaHelp: (show: boolean) => void;
   schemaInfo: SchemaInfo;
+  downloadLink: string;
 }
+
+const downloadSampleFile = (downloadLink: string) => {
+  const link = document.createElement("a");
+  link.href = downloadLink;
+  link.download = "sample_test_data.xlsx";
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+};
 
 const SchemaHelpModal: React.FC<SchemaHelpModalProps> = ({
   setShowSchemaHelp,
   schemaInfo,
+  downloadLink,
 }) => {
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
@@ -35,13 +46,33 @@ const SchemaHelpModal: React.FC<SchemaHelpModalProps> = ({
           </h2>
           <button
             onClick={() => setShowSchemaHelp(false)}
-            className="text-gray-500 hover:text-gray-700"
+            className="text-gray-500 hover:text-gray-700 cursor-pointer"
           >
             <X size={24} />
           </button>
         </div>
 
         <div className="p-6 space-y-6">
+          <div className="flex flex-col gap-2">
+            <div>
+              <h1 className="text-2xl font-semibold text-gray-800">
+                Download Sample
+              </h1>
+              <h4 className="text-xs">
+                Click the button below to download the excel file format
+              </h4>
+            </div>
+            <button
+              onClick={() => downloadSampleFile(downloadLink)}
+              className="cursor-pointer"
+            >
+              <div className="flex items-center justify-center bg-[#1B3A6A] w-fit text-white py-2 px-4 rounded-lg gap-2 shadow-lg">
+                <Download />
+                Download
+              </div>
+            </button>
+          </div>
+
           {/* Column Structure */}
           <div>
             <h3 className="text-lg font-semibold text-gray-800 mb-3">
@@ -141,7 +172,7 @@ const SchemaHelpModal: React.FC<SchemaHelpModalProps> = ({
           <div className="flex justify-end pt-4">
             <button
               onClick={() => setShowSchemaHelp(false)}
-              className="px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#486AA0] transition-colors"
+              className="px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#486AA0] transition-colors cursor-pointer"
             >
               Close
             </button>
