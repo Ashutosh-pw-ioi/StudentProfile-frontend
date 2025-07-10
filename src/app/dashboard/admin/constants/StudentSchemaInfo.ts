@@ -50,6 +50,8 @@ const studentSchemaInfo = {
     "Duplicate enrollment numbers",
     "Invalid email formats",
   ],
+  downloadLink:
+    "https://glqns72ea6.ufs.sh/f/35ZKzNsv5By61oPdNSQHWyStvbcNAs0uUq6hILf7wZlnmxj8",
 };
 
 export default studentSchemaInfo;
