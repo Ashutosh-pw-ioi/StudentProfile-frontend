@@ -16,9 +16,24 @@ import {
 import Image from "next/image";
 
 const AdminLayout = ({ children }: { children: React.ReactNode }) => {
+
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
+
+  useEffect(() => {
+      const userStr = localStorage.getItem("user");
+      if (userStr) {
+        try {
+          const user = JSON.parse(userStr);
+          if (user.role === "SUPER_ADMIN") {
+            router.push("/dashboard/superadmin");
+          }
+        } catch (e) {
+          console.error("Invalid user data in localStorage");
+        }
+      }
+    }, [router]);
 
   const menuItems = [
     {

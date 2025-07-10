@@ -21,23 +21,7 @@ function getSemesterNumber(semesterStr: string): number {
 }
 
 export default function AdminProfile() {
-
   const router = useRouter();
-
-
-  useEffect(() => {
-    const userStr = localStorage.getItem("user");
-    if (userStr) {
-      try {
-        const user = JSON.parse(userStr);
-        if (user.role === "SUPER_ADMIN") {
-          router.push("/dashboard/superadmin");
-        }
-      } catch (e) {
-        console.error("Invalid user data in localStorage");
-      }
-    }
-  }, [router]);
   const [studentsData, setStudentsData] = useState<any[]>([]);
   const [studentsFull, setStudentsFull] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -45,12 +29,24 @@ export default function AdminProfile() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const fetchStudentData = useCallback(async () => {
-
-
     const token = localStorage.getItem("authToken");
     if (!token) {
       router.push("/auth/admin/login");
       return;
+    }
+
+    // Check for SUPER_ADMIN role BEFORE making any API calls
+    const userStr = localStorage.getItem("user");
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        if (user.role === "SUPER_ADMIN") {
+          router.push("/dashboard/superadmin");
+          return; // Exit early to prevent API call
+        }
+      } catch (e) {
+        console.error("Invalid user data in localStorage");
+      }
     }
 
     try {
@@ -94,6 +90,7 @@ export default function AdminProfile() {
     }
   }, [router]);
 
+  // Remove the separate useEffect for SUPER_ADMIN check since it's now handled in fetchStudentData
   useEffect(() => {
     fetchStudentData();
   }, [fetchStudentData, refreshTrigger]);
@@ -108,7 +105,6 @@ export default function AdminProfile() {
       router.push("/auth/admin/login");
       return;
     }
-    
 
     try {
       const originalStudent = studentsFull.find((s) => s.id === updatedItem.id);
