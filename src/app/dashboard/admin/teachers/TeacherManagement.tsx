@@ -192,7 +192,7 @@ export default function TeachersManagement() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between">
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
           Teachers Management
         </h2>
       </div>

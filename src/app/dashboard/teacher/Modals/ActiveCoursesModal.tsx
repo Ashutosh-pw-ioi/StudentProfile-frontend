@@ -36,7 +36,7 @@ export default function ActiveCoursesModal({
           {courses?.map((course) => (
             <div
               key={course.id}
-              className="bg-[#FFD990] rounded-lg p-6 border hover:shadow-md transition-shadow"
+              className="bg-[#FFD990] rounded-lg p-6 border hover:shadow-md transition-shadow -ml-2 md:ml-0"
             >
               <div className="flex items-end justify-between">
                 <div>

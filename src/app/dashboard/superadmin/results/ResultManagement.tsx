@@ -271,7 +271,7 @@ export default function ResultManagement() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold text-gray-800">Result Management</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">Result Management</h2>
         {centerName && (
           <p className="text-sm text-gray-600">
             Center: <span className="font-medium">{centerName}</span>
