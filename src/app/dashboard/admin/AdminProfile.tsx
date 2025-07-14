@@ -21,9 +21,7 @@ function getSemesterNumber(semesterStr: string): number {
 }
 
 export default function AdminProfile() {
-
   const router = useRouter();
-
 
   useEffect(() => {
     const userStr = localStorage.getItem("user");
@@ -45,8 +43,6 @@ export default function AdminProfile() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const fetchStudentData = useCallback(async () => {
-
-
     const token = localStorage.getItem("authToken");
     if (!token) {
       router.push("/auth/admin/login");
@@ -108,7 +104,6 @@ export default function AdminProfile() {
       router.push("/auth/admin/login");
       return;
     }
-    
 
     try {
       const originalStudent = studentsFull.find((s) => s.id === updatedItem.id);
