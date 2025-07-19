@@ -295,11 +295,30 @@ export default function ResultManagement() {
         <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">
           Result Management
         </h2>
-        {centerName && (
-          <p className="text-sm text-gray-600">
-            Center: <span className="font-medium">{selectedCenter}</span>
-          </p>
-        )}
+        <div className="flex items-center gap-4">
+          {role === "SUPER_ADMIN" && (
+            <div className="relative">
+              <select
+                value={selectedCenter || ""}
+                onChange={handleCenterChange}
+                className="appearance-none bg-white border border-gray-300 rounded-lg px-4 py-2 pr-8 focus:outline-none focus:ring-2 focus:ring-[#1B3A6A] focus:border-transparent"
+              >
+                <option value="">Select Center</option>
+                {centers.map((center) => (
+                  <option key={center} value={center}>
+                    {center}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-2 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" />
+            </div>
+          )}
+          {selectedCenter && (
+            <p className="text-sm text-gray-600">
+              Center: <span className="font-medium">{selectedCenter}</span>
+            </p>
+          )}
+        </div>
       </div>
 
       {selectedCenter && (
