@@ -51,6 +51,7 @@ export default function StudentManagement() {
     if (!token || !selectedCenter) return;
 
     try {
+      setLoading(true);
       const response = await axios.post(
         "http://localhost:8000/api/student/get-center-students",
         { centerName: selectedCenter },
@@ -229,13 +230,13 @@ export default function StudentManagement() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex sm:flex-row flex-col justify-between items-start sm:items-center">
         <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
           Students Management
         </h2>
 
         {role === "SUPER_ADMIN" && (
-          <div className="flex items-center space-x-3">
+          <div className="flex sm:flex-row flex-col items-start sm:items-center space-x-3">
             <label
               htmlFor="center-select"
               className="text-gray-700 font-medium whitespace-nowrap"
