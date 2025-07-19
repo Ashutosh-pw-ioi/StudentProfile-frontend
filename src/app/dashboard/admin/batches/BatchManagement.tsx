@@ -399,7 +399,7 @@ export default function BatchManagement() {
           onBatchCreated={handleBatchCreated}
         />
 
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
           Batch Management
         </h2>
       </div>

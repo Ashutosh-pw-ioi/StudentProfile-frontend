@@ -635,7 +635,7 @@ export default function BatchManagement() {
 
       {/* Header with Center Selection */}
       <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
           Batch Management
         </h2>
 

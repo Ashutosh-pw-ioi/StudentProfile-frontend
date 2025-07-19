@@ -292,42 +292,10 @@ export default function ResultManagement() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold text-gray-800">Result Management</h2>
-
-        {role === "SUPER_ADMIN" && (
-          <div className="flex items-center space-x-3">
-            <label
-              htmlFor="center-select"
-              className="text-gray-700 font-medium whitespace-nowrap"
-            >
-              Select Center:
-            </label>
-            <div className="relative max-w-[150px]">
-              <select
-                id="center-select"
-                value={selectedCenter || ""}
-                onChange={handleCenterChange}
-                className="w-full appearance-none bg-[#1B3A6A] text-white border border-gray-300 rounded-md px-4 py-2 pr-10 cursor-pointer hover:bg-[#2a4a7a] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
-              >
-                <option value="" disabled className="text-gray-400">
-                  Choose a center...
-                </option>
-                {centers.map((center) => (
-                  <option
-                    key={center}
-                    value={center}
-                    className="bg-white text-gray-900"
-                  >
-                    {center}
-                  </option>
-                ))}
-              </select>
-              <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 pointer-events-none text-white" />
-            </div>
-          </div>
-        )}
-
-        {selectedCenter && role !== "SUPER_ADMIN" && (
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">
+          Result Management
+        </h2>
+        {centerName && (
           <p className="text-sm text-gray-600">
             Center: <span className="font-medium">{selectedCenter}</span>
           </p>

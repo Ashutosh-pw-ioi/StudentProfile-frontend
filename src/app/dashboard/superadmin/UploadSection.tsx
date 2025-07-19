@@ -163,11 +163,12 @@ export default function UploadSection({
   };
 
   return (
-    <div className="w-full mx-auto">
-      <div className="bg-white rounded-lg shadow-lg p-2 relative">
+    <div className="w-full mx-auto px-2 sm:px-0">
+      <div className="bg-white rounded-lg shadow-lg p-3 sm:p-4 md:p-6 relative">
         <button
           onClick={() => setShowSchemaHelp(true)}
-          className="text-white px-2 py-2 hover:bg-[#486AA0] transition-colors cursor-pointer bg-[#1B3A6A] duration-200 ease-in-out shadow-md absolute z-10 right-0 top-0 rounded-b-full rounded-l-full"
+          className="text-white px-3 py-3 sm:px-2 sm:py-2 hover:bg-[#486AA0] transition-colors cursor-pointer bg-[#1B3A6A] duration-200 ease-in-out shadow-md absolute z-10 right-0 top-0 rounded-b-full rounded-l-full"
+          aria-label="View schema help"
         >
           <HelpCircle size={20} />
         </button>
@@ -182,7 +183,7 @@ export default function UploadSection({
         />
 
         <div
-          className={`relative border-2 border-dashed rounded-lg py-4 px-8 text-center transition-all duration-200 ${
+          className={`relative border-2 border-dashed rounded-lg py-6 sm:py-8 px-4 sm:px-6 md:px-8 text-center transition-all duration-200 ${
             dragActive
               ? "border-blue-500 bg-blue-50"
               : uploadStatus === "error"
@@ -202,13 +203,15 @@ export default function UploadSection({
                 <CheckCircle className="text-green-500" size={48} />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-green-700 mb-2">
+                <h3 className="text-lg sm:text-xl font-semibold text-green-700 mb-2">
                   Upload Successful!
                 </h3>
-                <p className="text-gray-600 mb-2">{successMessage}</p>
+                <p className="text-sm sm:text-base text-gray-600 mb-4 px-2">
+                  {successMessage}
+                </p>
                 <button
                   onClick={removeFile}
-                  className="px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#486AA0] transition-colors relative z-10"
+                  className="w-full sm:w-auto px-6 py-3 sm:px-4 sm:py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#486AA0] transition-colors relative z-10 text-sm sm:text-base font-medium"
                 >
                   Upload Another File
                 </button>
@@ -220,13 +223,15 @@ export default function UploadSection({
                 <AlertCircle className="text-red-500" size={48} />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-red-700 mb-2">
+                <h3 className="text-lg sm:text-xl font-semibold text-red-700 mb-2">
                   Upload Failed
                 </h3>
-                <p className="text-red-600 mb-2">{errorMessage}</p>
+                <p className="text-sm sm:text-base text-red-600 mb-4 px-2 break-words">
+                  {errorMessage}
+                </p>
                 <button
                   onClick={removeFile}
-                  className="px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#486AA0] transition-colors relative z-10"
+                  className="w-full sm:w-auto px-6 py-3 sm:px-4 sm:py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#486AA0] transition-colors relative z-10 text-sm sm:text-base font-medium"
                 >
                   Try Again
                 </button>
@@ -237,10 +242,10 @@ export default function UploadSection({
               <div className="flex items-center justify-center">
                 <Loader2 className="text-[#1B3A6A] animate-spin" size={48} />
               </div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">
+              <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2">
                 Uploading Data...
               </h3>
-              <p className="text-gray-600">
+              <p className="text-sm sm:text-base text-gray-600 px-2">
                 Please wait while we process your file
               </p>
             </div>
@@ -250,26 +255,30 @@ export default function UploadSection({
                 <CheckCircle className="text-green-500" size={32} />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-1">
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-3">
                   File Ready
                 </h3>
-                <div className="flex items-center justify-center gap-2 text-gray-600 mb-2">
-                  <FileSpreadsheet size={20} />
-                  <span>{uploadedFile.name}</span>
-                  <span className="text-sm">
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-2 text-gray-600 mb-4 px-2">
+                  <div className="flex items-center gap-2">
+                    <FileSpreadsheet size={20} />
+                    <span className="text-sm sm:text-base break-all">
+                      {uploadedFile.name}
+                    </span>
+                  </div>
+                  <span className="text-xs sm:text-sm text-gray-500">
                     ({(uploadedFile.size / 1024 / 1024).toFixed(2)} MB)
                   </span>
                 </div>
-                <div className="flex justify-center gap-3">
+                <div className="flex flex-col sm:flex-row justify-center gap-3">
                   <button
                     onClick={removeFile}
-                    className="px-4 py-2 text-[#1B3A6A] border border-[#1B3A6A] rounded-lg hover:bg-gray-100 transition-colors relative z-10"
+                    className="w-full sm:w-auto px-6 py-3 sm:px-4 sm:py-2 text-[#1B3A6A] border border-[#1B3A6A] rounded-lg hover:bg-gray-100 transition-colors relative z-10 text-sm sm:text-base font-medium"
                   >
                     Remove
                   </button>
                   <button
                     onClick={uploadFile}
-                    className="px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#486AA0] transition-colors relative z-10"
+                    className="w-full sm:w-auto px-6 py-3 sm:px-4 sm:py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#486AA0] transition-colors relative z-10 text-sm sm:text-base font-medium"
                   >
                     Upload Data
                   </button>
@@ -290,15 +299,17 @@ export default function UploadSection({
                 />
               </div>
               <div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2">
                   {dragActive ? "Drop your Excel file here" : "Upload Data"}
                 </h3>
-                <p className="text-gray-600 mb-2 text-sm">
+                <p className="text-sm sm:text-base text-gray-600 mb-3 px-2">
                   Drag and drop your Excel file here, or click to browse
                 </p>
-                <div className="text-sm text-gray-500">
-                  Supported formats: {validExtensions.join(", ")} • Max size:{" "}
-                  {fileSizeLimit / 1024 / 1024}MB
+                <div className="text-xs sm:text-sm text-gray-500 px-2">
+                  <div className="mb-1">
+                    Supported formats: {validExtensions.join(", ")}
+                  </div>
+                  <div>Max size: {fileSizeLimit / 1024 / 1024}MB</div>
                 </div>
               </div>
             </div>

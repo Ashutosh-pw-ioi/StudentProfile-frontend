@@ -686,7 +686,7 @@ export default function CourseManagement() {
       )}
 
       <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">
+        <h2 className="ttext-2xl sm:ext-3xl font-bold text-gray-800 mb-2">
           Course Management
         </h2>
 

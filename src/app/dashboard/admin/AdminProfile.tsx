@@ -21,9 +21,7 @@ function getSemesterNumber(semesterStr: string): number {
 }
 
 export default function AdminProfile() {
-
   const router = useRouter();
-
 
   useEffect(() => {
     const userStr = localStorage.getItem("user");
@@ -45,8 +43,6 @@ export default function AdminProfile() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const fetchStudentData = useCallback(async () => {
-
-
     const token = localStorage.getItem("authToken");
     if (!token) {
       router.push("/auth/admin/login");
@@ -108,7 +104,6 @@ export default function AdminProfile() {
       router.push("/auth/admin/login");
       return;
     }
-    
 
     try {
       const originalStudent = studentsFull.find((s) => s.id === updatedItem.id);
@@ -193,7 +188,7 @@ export default function AdminProfile() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between">
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
           Students Management
         </h2>
       </div>
