@@ -411,6 +411,8 @@ export default function ResultManagement() {
               "Marks outside valid range",
               "Missing required columns",
             ],
+            downloadLink:
+              "https://glqns72ea6.ufs.sh/f/35ZKzNsv5By61oPdNSQHWyStvbcNAs0uUq6hILf7wZlnmxj8",
           }}
         />
       </div>

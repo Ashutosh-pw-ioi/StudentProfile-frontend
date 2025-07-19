@@ -21,6 +21,7 @@ interface UploadSectionProps {
     columnDescriptions: { key: string; description: string }[];
     guidelines: string[];
     commonIssues: string[];
+    downloadLink: string;
   };
   fileSizeLimit?: number;
   validTypes?: string[];
@@ -320,6 +321,7 @@ export default function UploadSection({
         <SchemaHelpModal
           setShowSchemaHelp={setShowSchemaHelp}
           schemaInfo={schemaInfo}
+          downloadLink={schemaInfo.downloadLink}
         />
       )}
     </div>

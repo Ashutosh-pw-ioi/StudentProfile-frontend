@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { Users, Plus } from "lucide-react";
+import { Users, Plus, ChevronDown } from "lucide-react";
 import Table from "../Table";
 import { useRouter } from "next/navigation";
 import axios, { AxiosError } from "axios";
@@ -640,19 +640,35 @@ export default function BatchManagement() {
         </h2>
 
         {role === "SUPER_ADMIN" && (
-          <div className="flex items-center space-x-2">
-            <label className="text-gray-700">Select Center:</label>
-            <select
-              value={selectedCenter}
-              onChange={handleCenterChange}
-              className="border border-gray-300 p-2 rounded-md"
+          <div className="flex items-center space-x-3">
+            <label
+              htmlFor="center-select"
+              className="text-gray-700 font-medium whitespace-nowrap"
             >
-              {centers.map((center) => (
-                <option key={center} value={center}>
-                  {center}
+              Select Center:
+            </label>
+            <div className="relative max-w-[150px]">
+              <select
+                id="center-select"
+                value={selectedCenter}
+                onChange={handleCenterChange}
+                className="w-full appearance-none bg-[#1B3A6A] text-white border border-gray-300 rounded-md px-4 py-2 pr-10 cursor-pointer hover:bg-[#2a4a7a] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              >
+                <option value="" disabled className="text-gray-400">
+                  Choose a center...
                 </option>
-              ))}
-            </select>
+                {centers.map((center) => (
+                  <option
+                    key={center}
+                    value={center}
+                    className="bg-white text-gray-900"
+                  >
+                    {center}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 pointer-events-none text-white" />
+            </div>
           </div>
         )}
       </div>

@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { Users } from "lucide-react";
+import { ChevronDown, Users } from "lucide-react";
 import UploadSection from "../UploadSection";
 import Table from "../Table";
 import { useRouter } from "next/navigation";
@@ -205,6 +205,8 @@ export default function TeachersManagement() {
       "Invalid experience values (should be a number)",
       "Course not found in the specified batch",
     ],
+    downloadLink:
+      "https://glqns72ea6.ufs.sh/f/35ZKzNsv5By61oPdNSQHWyStvbcNAs0uUq6hILf7wZlnmxj8",
   };
 
   if (loading) return <Shimmer />;
@@ -231,19 +233,37 @@ export default function TeachersManagement() {
         <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
           Teachers Management
         </h2>
-        {role === "superadmin" && (
-          <select
-            className="border border-gray-300 p-2 rounded"
-            value={selectedCenter || ""}
-            onChange={handleCenterChange}
-          >
-            <option value="">Select Center</option>
-            {centers.map((center) => (
-              <option key={center} value={center}>
-                {center}
-              </option>
-            ))}
-          </select>
+        {role === "SUPER_ADMIN" && (
+          <div className="flex items-center space-x-3">
+            <label
+              htmlFor="center-select"
+              className="text-gray-700 font-medium whitespace-nowrap"
+            >
+              Select Center:
+            </label>
+            <div className="relative max-w-[150px]">
+              <select
+                id="center-select"
+                value={selectedCenter || ""}
+                onChange={handleCenterChange}
+                className="w-full appearance-none bg-[#1B3A6A] text-white border border-gray-300 rounded-md px-4 py-2 pr-10 cursor-pointer hover:bg-[#2a4a7a] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              >
+                <option value="" disabled className="text-gray-400">
+                  Choose a center...
+                </option>
+                {centers.map((center) => (
+                  <option
+                    key={center}
+                    value={center}
+                    className="bg-white text-gray-900"
+                  >
+                    {center}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 pointer-events-none text-white" />
+            </div>
+          </div>
         )}
       </div>
 
