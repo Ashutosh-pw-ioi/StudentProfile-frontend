@@ -164,7 +164,7 @@ export default function UploadSection({
 
   return (
     <div className="w-full mx-auto px-2 sm:px-0">
-      <div className="bg-white rounded-lg shadow-lg p-3 sm:p-4 md:p-6 relative">
+      <div className="bg-white rounded-lg shadow-lg p-3 sm:p-4 md:p-2 relative">
         <button
           onClick={() => setShowSchemaHelp(true)}
           className="text-white px-3 py-3 sm:px-2 sm:py-2 hover:bg-[#486AA0] transition-colors cursor-pointer bg-[#1B3A6A] duration-200 ease-in-out shadow-md absolute z-10 right-0 top-0 rounded-b-full rounded-l-full"
@@ -183,7 +183,7 @@ export default function UploadSection({
         />
 
         <div
-          className={`relative border-2 border-dashed rounded-lg py-6 sm:py-8 px-4 sm:px-6 md:px-8 text-center transition-all duration-200 ${
+          className={`relative border-2 border-dashed rounded-lg py-6 sm:py-2 px-4 sm:px-6 md:px-8 text-center transition-all duration-200 ${
             dragActive
               ? "border-blue-500 bg-blue-50"
               : uploadStatus === "error"
@@ -298,14 +298,14 @@ export default function UploadSection({
                   size={32}
                 />
               </div>
-              <div>
-                <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-2">
+              <div className="-mt-3">
+                <h3 className="text-lg sm:text-xl font-semibold text-gray-800 mb-1">
                   {dragActive ? "Drop your Excel file here" : "Upload Data"}
                 </h3>
-                <p className="text-sm sm:text-base text-gray-600 mb-3 px-2">
+                <p className="text-sm text-gray-600 mb-1 px-2">
                   Drag and drop your Excel file here, or click to browse
                 </p>
-                <div className="text-xs sm:text-sm text-gray-500 px-2">
+                <div className="text-xs text-gray-500 px-2">
                   <div className="mb-1">
                     Supported formats: {validExtensions.join(", ")}
                   </div>
