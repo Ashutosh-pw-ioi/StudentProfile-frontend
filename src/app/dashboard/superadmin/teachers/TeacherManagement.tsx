@@ -283,7 +283,7 @@ export default function TeachersManagement() {
 
             <UploadSection
               onSuccess={triggerRefresh}
-              uploadUrl=`${backendUrl}/api/teacher/add-teacher`
+              uploadUrl={`${backendUrl}/api/teacher/add-teacher`}
               schemaInfo={teacherSchemaInfo}
             />
           </div>

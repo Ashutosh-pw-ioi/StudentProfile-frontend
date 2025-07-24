@@ -285,7 +285,7 @@ export default function StudentManagement() {
 
             <UploadSection
               onSuccess={triggerRefresh}
-              uploadUrl=`${backendUrl}/api/student/add-student`
+              uploadUrl={`${backendUrl}/api/student/add-student`}
               schemaInfo={studentSchemaInfo}
             />
           </div>

@@ -206,7 +206,7 @@ export default function AdminProfile() {
         </div>
         <UploadSection
           onSuccess={triggerRefresh}
-          uploadUrl=`${backendUrl]/api/student/add-student`
+          uploadUrl={`${backendUrl}/api/student/add-student`}
           schemaInfo={studentSchemaInfo}
         />
       </div>
