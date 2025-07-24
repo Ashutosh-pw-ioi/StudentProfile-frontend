@@ -8,6 +8,8 @@ import axios, { AxiosError } from "axios";
 import Shimmer from "../Shimmer";
 import ListModal from "./modals/ListModal";
 import AddBatchModal from "./modals/AddBatchModal";
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+
 
 interface Student {
   id: string;
@@ -125,7 +127,7 @@ export default function BatchManagement() {
     try {
       const token = localStorage.getItem("authToken");
       const response = await axios.post<{ success: boolean; data: AdminData }>(
-        "http://localhost:8000/api/admin/get",
+        `${backendUrl}/api/admin/get`,
         { id: adminId },
         { headers: { token } }
       );
@@ -157,7 +159,7 @@ export default function BatchManagement() {
 
       const config: any = {
         method: "GET",
-        url: "http://localhost:8000/api/batch/all",
+        url: `${backendUrl}/api/batch/all`,
         headers: { token },
       };
 
@@ -248,7 +250,7 @@ export default function BatchManagement() {
         };
 
         const response = await axios.put(
-          "http://localhost:8000/api/batch/update",
+          `${backendUrl}/api/batch/update`,
           updateData,
           { headers: { token } }
         );
@@ -295,7 +297,7 @@ export default function BatchManagement() {
         }
 
         const response = await axios.delete(
-          "http://localhost:8000/api/batch/delete",
+          `${backendUrl}/api/batch/delete`,
           {
             headers: { token },
             data: { batchId: deleteId },
@@ -399,7 +401,7 @@ export default function BatchManagement() {
           onBatchCreated={handleBatchCreated}
         />
 
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
           Batch Management
         </h2>
       </div>

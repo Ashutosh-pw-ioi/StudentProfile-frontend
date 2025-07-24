@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import Shimmer from "../Shimmer";
 import teacherSchemaInfo from "../constants/TeacherSchemaInfo";
+const backendUrl=process.env.NEXT_PUBLIC_BACKEND_URL
 
 export default function TeachersManagement() {
   const [teachers, setTeachers] = useState<any[]>([]);
@@ -34,7 +35,7 @@ export default function TeachersManagement() {
       }
 
       const response = await axios.get(
-        "http://localhost:8000/api/teacher/center-teachers",
+        `${backendUrl}/api/teacher/center-teachers`,
         {
           headers: {
             token: token,
@@ -107,7 +108,7 @@ export default function TeachersManagement() {
       };
 
       await axios.put(
-        "http://localhost:8000/api/teacher/update-teacher",
+        `${backendUrl}/api/teacher/update-teacher`,
         updateData,
         {
           headers: {
@@ -140,7 +141,7 @@ export default function TeachersManagement() {
         return;
       }
 
-      await axios.delete("http://localhost:8000/api/teacher/delete-teacher", {
+      await axios.delete(`${backendUrl}/api/teacher/delete-teacher`, {
         headers: {
           token: token,
         },
@@ -192,7 +193,7 @@ export default function TeachersManagement() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between">
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
           Teachers Management
         </h2>
       </div>
@@ -209,7 +210,7 @@ export default function TeachersManagement() {
         </div>
         <UploadSection
           onSuccess={triggerRefresh}
-          uploadUrl="http://localhost:8000/api/teacher/add-teacher"
+          uploadUrl={`${backendUrl}/api/teacher/add-teacher`}
           schemaInfo={teacherSchemaInfo}
         />
       </div>

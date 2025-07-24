@@ -7,6 +7,7 @@ import axios from "axios";
 import ProfileSkeleton from "./Skeletons/Profile";
 import ActiveCoursesModal from "./Modals/ActiveCoursesModal";
 import { CourseDetail } from "./interfaces/CourseDetails";
+const backendUrl=process.env.NEXT_PUBLIC_BACKEND_URL
 
 interface TeacherData {
   id: string;
@@ -41,7 +42,7 @@ export default function TeacherProfile() {
         }
 
         const response = await axios.get(
-          "http://localhost:8000/api/teacher/teacher-profile",
+          `${backendUrl}/api/teacher/teacher-profile`,
           { headers: { token: token } }
         );
 
@@ -92,7 +93,7 @@ export default function TeacherProfile() {
 
   return (
     <div className="space-y-6 relative">
-      <h2 className="text-3xl font-bold text-gray-800 mb-2">Teacher Profile</h2>
+      <h2 className="text-3xl font-bold text-gray-800 mb-6">Teacher Profile</h2>
 
       <div className="bg-white/80 backdrop-blur-sm shadow-lg rounded-lg border-0 p-8">
         <div className="flex items-center space-x-6">

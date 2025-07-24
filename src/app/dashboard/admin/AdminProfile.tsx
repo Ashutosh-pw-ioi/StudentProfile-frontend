@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import Shimmer from "./Shimmer";
 import studentSchemaInfo from "./constants/StudentSchemaInfo";
+const backendUrl=process.env.NEXT_PUBLIC_BACKEND_URL
 
 function getSemesterString(semesterNo: number): string {
   if (semesterNo === 1) return "1st";
@@ -21,9 +22,7 @@ function getSemesterNumber(semesterStr: string): number {
 }
 
 export default function AdminProfile() {
-
   const router = useRouter();
-
 
   useEffect(() => {
     const userStr = localStorage.getItem("user");
@@ -45,8 +44,6 @@ export default function AdminProfile() {
   const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   const fetchStudentData = useCallback(async () => {
-
-
     const token = localStorage.getItem("authToken");
     if (!token) {
       router.push("/auth/admin/login");
@@ -55,7 +52,7 @@ export default function AdminProfile() {
 
     try {
       const response = await axios.get(
-        "http://localhost:8000/api/student/get-center-students",
+        `${backendUrl}/api/student/get-center-students`,
         {
           headers: {
             token: token,
@@ -108,7 +105,6 @@ export default function AdminProfile() {
       router.push("/auth/admin/login");
       return;
     }
-    
 
     try {
       const originalStudent = studentsFull.find((s) => s.id === updatedItem.id);
@@ -129,7 +125,7 @@ export default function AdminProfile() {
       };
 
       const response = await axios.put(
-        "http://localhost:8000/api/student/edit-student",
+        `${backendUrl}/api/student/edit-student`,
         editPayload,
         {
           headers: {
@@ -158,7 +154,7 @@ export default function AdminProfile() {
 
     try {
       const response = await axios.delete(
-        "http://localhost:8000/api/student/delete-student",
+        `${backendUrl}/api/student/delete-student`,
         {
           headers: {
             token: token,
@@ -193,7 +189,7 @@ export default function AdminProfile() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between">
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
           Students Management
         </h2>
       </div>
@@ -210,7 +206,7 @@ export default function AdminProfile() {
         </div>
         <UploadSection
           onSuccess={triggerRefresh}
-          uploadUrl="http://localhost:8000/api/student/add-student"
+          uploadUrl={`${backendUrl}/api/student/add-student`}
           schemaInfo={studentSchemaInfo}
         />
       </div>

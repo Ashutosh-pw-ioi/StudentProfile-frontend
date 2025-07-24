@@ -8,6 +8,7 @@ import {
   CheckCircle,
   AlertCircle,
   Download,
+  X,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import SchemaHelpModal from "../Modals/SchemaHelpModal";
@@ -107,21 +108,25 @@ export default function UploadSection() {
   }
 
   return (
-    <div className="max-w-6xl mx-auto">
-      <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold text-gray-800">Upload Test Data</h1>
+    <div className="max-w-6xl mx-auto px-1 sm:px-2">
+      {/* Mobile-optimized header */}
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 sm:mb-8 gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold text-gray-800">
+          Upload Test Data
+        </h1>
         <button
           onClick={() => setShowSchemaHelp(true)}
-          className="flex items-center gap-2 px-4 py-2 text-white rounded-lg hover:bg-[#486AA0] transition-colors cursor-pointer bg-[#1B3A6A] duration-200 ease-in-out shadow-md"
+          className="flex items-center justify-center gap-2 px-4 py-3 sm:py-2 text-white rounded-lg hover:bg-[#486AA0] transition-colors cursor-pointer bg-[#1B3A6A] duration-200 ease-in-out shadow-md w-full sm:w-auto text-sm sm:text-base mt-2"
         >
           <HelpCircle size={20} />
           Schema Help
         </button>
       </div>
 
-      <div className="bg-white rounded-xl shadow-lg p-8">
+      <div className="bg-white rounded-xl shadow-lg p-4 sm:p-6 lg:p-8">
+        {/* Mobile-optimized drag and drop area */}
         <div
-          className={`relative border-2 border-dashed rounded-xl p-12 text-center transition-all duration-200 ${
+          className={`relative border-2 border-dashed rounded-xl p-6 sm:p-8 lg:p-12 text-center transition-all duration-200 ${
             dragActive
               ? "border-blue-500 bg-blue-50"
               : uploadStatus === "error"
@@ -146,15 +151,19 @@ export default function UploadSection() {
           {uploadedFile ? (
             <div className="space-y-4">
               <div className="flex items-center justify-center">
-                <CheckCircle className="text-green-500" size={48} />
+                <CheckCircle className="text-green-500" size={40} />
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">
                   File Ready
                 </h3>
-                <div className="flex items-center justify-center gap-2 text-gray-600 mb-4">
-                  <FileSpreadsheet size={20} />
-                  <span>{uploadedFile.name}</span>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-2 text-gray-600 mb-4">
+                  <div className="flex items-center gap-2">
+                    <FileSpreadsheet size={20} />
+                    <span className="text-sm sm:text-base break-all">
+                      {uploadedFile.name}
+                    </span>
+                  </div>
                   <span className="text-sm">
                     ({(uploadedFile.size / 1024 / 1024).toFixed(2)} MB)
                   </span>
@@ -162,8 +171,9 @@ export default function UploadSection() {
                 <div className="flex justify-center">
                   <button
                     onClick={removeFile}
-                    className="px-4 py-2 text-white rounded-lg hover:bg-[#486AA0] cursor-pointer transition-colors z-10 bg-[#1B3A6A] duration-200 ease-in-out"
+                    className="flex items-center gap-2 px-4 py-2 text-white rounded-lg hover:bg-[#486AA0] cursor-pointer transition-colors z-10 bg-[#1B3A6A] duration-200 ease-in-out"
                   >
+                    <X size={16} />
                     Remove
                   </button>
                 </div>
@@ -172,13 +182,13 @@ export default function UploadSection() {
           ) : uploadStatus === "error" ? (
             <div className="space-y-4">
               <div className="flex items-center justify-center">
-                <AlertCircle className="text-red-500" size={48} />
+                <AlertCircle className="text-red-500" size={40} />
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-red-700 mb-2">
                   Invalid File Type
                 </h3>
-                <p className="text-red-600 mb-4">
+                <p className="text-red-600 mb-4 text-sm sm:text-base">
                   Please upload only XLS or XLSX files
                 </p>
                 <button
@@ -196,17 +206,20 @@ export default function UploadSection() {
                   className={`${
                     dragActive ? "text-blue-500" : "text-gray-400"
                   }`}
-                  size={48}
+                  size={40}
                 />
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-800 mb-2">
                   {dragActive ? "Drop your XLS file here" : "Upload XLS File"}
                 </h3>
-                <p className="text-gray-600 mb-4">
-                  Drag and drop your XLS/XLSX file here, or click to browse
+                <p className="text-gray-600 mb-4 text-sm sm:text-base">
+                  Drag and drop your XLS/XLSX file here, or{" "}
+                  <span className="text-blue-600 font-medium">
+                    tap to browse
+                  </span>
                 </p>
-                <div className="text-sm text-gray-500">
+                <div className="text-xs sm:text-sm text-gray-500">
                   Supported formats: .xls, .xlsx • Max size: 10MB
                 </div>
               </div>
@@ -214,38 +227,44 @@ export default function UploadSection() {
           )}
         </div>
 
-        <div className="mt-8 grid md:grid-cols-3 gap-6">
-          <div className="text-center p-4">
+        {/* Mobile-optimized feature cards */}
+        <div className="mt-6 sm:mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          <div className="text-center p-4 rounded-lg border border-gray-100 bg-gray-50">
             <div className="w-12 h-12 bg-[#D4E3F5] rounded-lg flex items-center justify-center mx-auto mb-3">
-              <FileSpreadsheet className="text-[1B3A6A]" size={24} />
+              <FileSpreadsheet className="text-[#1B3A6A]" size={24} />
             </div>
-            <h4 className="font-semibold text-gray-800 mb-2">XLS/XLSX Only</h4>
-            <p className="text-sm text-gray-600">
+            <h4 className="font-semibold text-gray-800 mb-2 text-sm sm:text-base">
+              XLS/XLSX Only
+            </h4>
+            <p className="text-xs sm:text-sm text-gray-600">
               We support Excel files in .xls and .xlsx formats
             </p>
           </div>
+
           <div
             onClick={downloadSampleFile}
-            className="text-center p-4 cursor-pointer hover:bg-gray-50 rounded-lg transition-colors"
+            className="text-center p-4 cursor-pointer hover:bg-gray-50 rounded-lg transition-colors border border-gray-100 active:bg-gray-100"
           >
             <div className="w-12 h-12 bg-[#1B3A6A] rounded-lg flex items-center justify-center mx-auto mb-3">
               <Download className="text-[#D9A864]" size={24} />
             </div>
-            <h4 className="font-semibold text-gray-800 mb-2">
+            <h4 className="font-semibold text-gray-800 mb-2 text-sm sm:text-base">
               Download Sample
             </h4>
-            <p className="text-sm text-gray-600">
-              Click Here to see the excel file format
+            <p className="text-xs sm:text-sm text-gray-600">
+              Tap here to see the excel file format
             </p>
           </div>
 
-          <div className="text-center p-4">
+          <div className="text-center p-4 rounded-lg border border-gray-100 bg-gray-50 sm:col-span-2 lg:col-span-1">
             <div className="w-12 h-12 bg-[#D4E3F5] rounded-lg flex items-center justify-center mx-auto mb-3">
               <HelpCircle className="text-[#1B3A6A]" size={24} />
             </div>
-            <h4 className="font-semibold text-gray-800 mb-2">Need Help?</h4>
-            <p className="text-sm text-gray-600">
-              Click Schema Help to see formatting guidelines
+            <h4 className="font-semibold text-gray-800 mb-2 text-sm sm:text-base">
+              Need Help?
+            </h4>
+            <p className="text-xs sm:text-sm text-gray-600">
+              Tap Schema Help to see formatting guidelines
             </p>
           </div>
         </div>

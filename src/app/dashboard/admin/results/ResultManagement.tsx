@@ -8,6 +8,8 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import Shimmer from "../Shimmer";
 import StudentScoresModal from "./StudentScoresModal";
+const backendUrl=process.env.NEXT_PUBLIC_BACKEND_URL
+
 
 const getAdminId = () => {
   if (typeof window === "undefined") return null;
@@ -111,7 +113,7 @@ export default function ResultManagement() {
       }
 
       const response = await axios.post<{ data: AdminData }>(
-        "http://localhost:8000/api/admin/get",
+        `${backendUrl}/api/admin/get`,
         { id: adminId },
         { headers: { token } }
       );
@@ -151,7 +153,7 @@ export default function ResultManagement() {
       }
 
       const response = await axios.get(
-        "http://localhost:8000/api/marks/center-scores",
+        `${backendUrl}/api/marks/center-scores`,
         {
           headers: { token },
           params: { centerName },
@@ -216,7 +218,7 @@ export default function ResultManagement() {
       };
 
       await axios.put(
-        "http://localhost:8000/api/marks/edit-score",
+        `${backendUrl}/api/marks/edit-score`,
         updateData,
         { headers: { token } }
       );
@@ -262,7 +264,7 @@ export default function ResultManagement() {
         return;
       }
 
-      await axios.delete("http://localhost:8000/api/marks/delete-score", {
+      await axios.delete(`${backendUrl}/api/marks/delete-score`, {
         headers: { token },
         data: { scoreId: id },
       });
@@ -362,7 +364,7 @@ export default function ResultManagement() {
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold text-gray-800">Result Management</h2>
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800">Result Management</h2>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -411,6 +413,8 @@ export default function ResultManagement() {
               "Marks outside valid range",
               "Missing required columns",
             ],
+            downloadLink:
+              "https://glqns72ea6.ufs.sh/f/35ZKzNsv5By61oPdNSQHWyStvbcNAs0uUq6hILf7wZlnmxj8",
           }}
         />
       </div>

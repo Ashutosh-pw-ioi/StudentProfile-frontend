@@ -1,13 +1,13 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { Users } from "lucide-react";
+import { ChevronDown, Users } from "lucide-react";
 import UploadSection from "../UploadSection";
 import Table from "../Table";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import Shimmer from "../Shimmer";
-
+const backendUrl=process.env.NEXT_PUBLIC_BACKEND_URL
 
 const centers = ["Patna", "Bangalore", "Noida", "Indore", "Lucknow", "Pune"];
 
@@ -52,8 +52,9 @@ export default function StudentManagement() {
     if (!token || !selectedCenter) return;
 
     try {
+      setLoading(true);
       const response = await axios.post(
-        "http://localhost:8000/api/student/get-center-students",
+        `${backendUrl}/api/student/get-center-students`,
         { centerName: selectedCenter },
         { headers: { token } }
       );
@@ -117,7 +118,7 @@ export default function StudentManagement() {
       };
 
       const response = await axios.put(
-        "http://localhost:8000/api/student/edit-student",
+        `${backendUrl}/api/student/edit-student`,
         editPayload,
         { headers: { token } }
       );
@@ -141,7 +142,7 @@ export default function StudentManagement() {
 
     try {
       const response = await axios.delete(
-        "http://localhost:8000/api/student/delete-student",
+        `${backendUrl}/api/student/delete-student`,
         {
           headers: {
             token: token,
@@ -224,28 +225,48 @@ export default function StudentManagement() {
       "Duplicate enrollment numbers",
       "Invalid email formats",
     ],
+    downloadLink:
+      "https://glqns72ea6.ufs.sh/f/35ZKzNsv5By61oPdNSQHWyStvbcNAs0uUq6hILf7wZlnmxj8",
   };
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">
+      <div className="flex sm:flex-row flex-col justify-between items-start sm:items-center">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
           Students Management
         </h2>
 
-        {role === "superadmin" && (
-          <select
-            className="border border-gray-300 p-2 rounded"
-            value={selectedCenter || ""}
-            onChange={handleCenterChange}
-          >
-            <option value="">Select Center</option>
-            {centers.map((center) => (
-              <option key={center} value={center}>
-                {center}
-              </option>
-            ))}
-          </select>
+        {role === "SUPER_ADMIN" && (
+          <div className="flex sm:flex-row flex-col items-start sm:items-center space-x-3">
+            <label
+              htmlFor="center-select"
+              className="text-gray-700 font-medium whitespace-nowrap"
+            >
+              Select Center:
+            </label>
+            <div className="relative max-w-[150px]">
+              <select
+                id="center-select"
+                value={selectedCenter || ""}
+                onChange={handleCenterChange}
+                className="w-full appearance-none bg-[#1B3A6A] text-white border border-gray-300 rounded-md px-4 py-2 pr-10 cursor-pointer hover:bg-[#2a4a7a] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              >
+                <option value="" disabled className="text-gray-400">
+                  Choose a center...
+                </option>
+                {centers.map((center) => (
+                  <option
+                    key={center}
+                    value={center}
+                    className="bg-white text-gray-900"
+                  >
+                    {center}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 pointer-events-none text-white" />
+            </div>
+          </div>
         )}
       </div>
 
@@ -264,7 +285,7 @@ export default function StudentManagement() {
 
             <UploadSection
               onSuccess={triggerRefresh}
-              uploadUrl="http://localhost:8000/api/student/add-student"
+              uploadUrl={`${backendUrl}/api/student/add-student`}
               schemaInfo={studentSchemaInfo}
             />
           </div>

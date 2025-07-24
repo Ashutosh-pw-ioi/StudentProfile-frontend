@@ -1,11 +1,12 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { BookOpen, Users, Plus } from "lucide-react";
+import { BookOpen, Plus, ChevronDown } from "lucide-react";
 import Table from "../Table";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import Shimmer from "../Shimmer";
+const backendUrl=process.env.NEXT_PUBLIC_BACKEND_URL
 
 interface Student {
   id: string;
@@ -119,7 +120,7 @@ export default function CourseManagement() {
       if (!token || !selectedCenter) return;
 
       const response = await axios.post<CourseData>(
-        "http://localhost:8000/api/course/all",
+        `${backendUrl}/api/course/all`,
         { centerName: selectedCenter },
         { headers: { token } }
       );
@@ -187,7 +188,7 @@ export default function CourseManagement() {
         center: updatedItem.center,
       };
 
-      await axios.put("http://localhost:8000/api/course/update", updateData, {
+      await axios.put(`${backendUrl}/api/course/update`, updateData, {
         headers: { token },
       });
 
@@ -212,7 +213,7 @@ export default function CourseManagement() {
 
       const courseId = typeof id === "number" ? id.toString() : id;
 
-      await axios.delete("http://localhost:8000/api/course/delete", {
+      await axios.delete(`${backendUrl}/api/course/delete`, {
         headers: { token },
         data: { id: courseId },
       });
@@ -304,7 +305,7 @@ export default function CourseManagement() {
       };
 
       const response = await axios.post(
-        "http://localhost:8000/api/course/create",
+        `${backendUrl}/api/course/create`,
         payload,
         { headers: { token } }
       );
@@ -686,24 +687,40 @@ export default function CourseManagement() {
       )}
 
       <div className="flex justify-between items-center">
-        <h2 className="text-3xl font-bold text-gray-800 mb-2">
+        <h2 className="ttext-2xl sm:ext-3xl font-bold text-gray-800 mb-2">
           Course Management
         </h2>
 
         {role === "SUPER_ADMIN" && (
-          <div className="flex items-center space-x-2">
-            <label className="text-gray-700">Select Center:</label>
-            <select
-              value={selectedCenter}
-              onChange={handleCenterChange}
-              className="border border-gray-300 p-2 rounded-md"
+          <div className="flex items-center space-x-3">
+            <label
+              htmlFor="center-select"
+              className="text-gray-700 font-medium whitespace-nowrap"
             >
-              {centers.map((center) => (
-                <option key={center} value={center}>
-                  {center}
+              Select Center:
+            </label>
+            <div className="relative max-w-[150px]">
+              <select
+                id="center-select"
+                value={selectedCenter}
+                onChange={handleCenterChange}
+                className="w-full appearance-none bg-[#1B3A6A] text-white border border-gray-300 rounded-md px-4 py-2 pr-10 cursor-pointer hover:bg-[#2a4a7a] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+              >
+                <option value="" disabled className="text-gray-400">
+                  Choose a center...
                 </option>
-              ))}
-            </select>
+                {centers.map((center) => (
+                  <option
+                    key={center}
+                    value={center}
+                    className="bg-white text-gray-900"
+                  >
+                    {center}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 transform -translate-y-1/2 w-4 h-4 pointer-events-none text-white" />
+            </div>
           </div>
         )}
       </div>
