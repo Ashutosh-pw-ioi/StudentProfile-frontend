@@ -8,6 +8,7 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import Shimmer from "./Shimmer";
 import studentSchemaInfo from "./constants/StudentSchemaInfo";
+const backendUrl=process.env.NEXT_PUBLIC_BACKEND_URL
 
 function getSemesterString(semesterNo: number): string {
   if (semesterNo === 1) return "1st";
@@ -51,7 +52,7 @@ export default function AdminProfile() {
 
     try {
       const response = await axios.get(
-        "http://localhost:8000/api/student/get-center-students",
+        `${backendUrl}/api/student/get-center-students`,
         {
           headers: {
             token: token,
@@ -124,7 +125,7 @@ export default function AdminProfile() {
       };
 
       const response = await axios.put(
-        "http://localhost:8000/api/student/edit-student",
+        `${backendUrl}/api/student/edit-student`,
         editPayload,
         {
           headers: {
@@ -153,7 +154,7 @@ export default function AdminProfile() {
 
     try {
       const response = await axios.delete(
-        "http://localhost:8000/api/student/delete-student",
+        `${backendUrl}/api/student/delete-student`,
         {
           headers: {
             token: token,
@@ -205,7 +206,7 @@ export default function AdminProfile() {
         </div>
         <UploadSection
           onSuccess={triggerRefresh}
-          uploadUrl="http://localhost:8000/api/student/add-student"
+          uploadUrl=`${backendUrl]/api/student/add-student`
           schemaInfo={studentSchemaInfo}
         />
       </div>

@@ -8,6 +8,7 @@ import CoursesSkeleton from "../Skeletons/Courses";
 import StudentListModal from "../Modals/StudentListModal";
 import StudentProfileModal from "../Modals/StudentProfileModal";
 import { Student, Batch } from "../interfaces/CourseDetails";
+const backendUrl=process.env.NEXT_PUBLIC_BACKEND_URL
 
 export default function CourseManagement() {
   const [batches, setBatches] = useState<Batch[]>([]);
@@ -28,7 +29,7 @@ export default function CourseManagement() {
           return;
         }
         const response = await axios.get(
-          "http://localhost:8000/api/teacher/teacher-academics",
+          `${backendUrl}/api/teacher/teacher-academics`,
           {
             headers: { token },
           }
@@ -63,7 +64,7 @@ export default function CourseManagement() {
       setLoading(true);
       setShowStudentModal(false);
       const res = await axios.get(
-        `http://localhost:8000/api/teacher/student-profile/${student.id}`
+        `${backendUrl}/api/teacher/student-profile/${student.id}`
       );
 
       console.log(res.data.data);

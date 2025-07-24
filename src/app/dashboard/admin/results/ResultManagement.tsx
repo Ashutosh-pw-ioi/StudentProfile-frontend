@@ -8,6 +8,8 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import Shimmer from "../Shimmer";
 import StudentScoresModal from "./StudentScoresModal";
+const backendUrl=process.env.NEXT_PUBLIC_BACKEND_URL
+
 
 const getAdminId = () => {
   if (typeof window === "undefined") return null;
@@ -111,7 +113,7 @@ export default function ResultManagement() {
       }
 
       const response = await axios.post<{ data: AdminData }>(
-        "http://localhost:8000/api/admin/get",
+        `${backendUrl}/api/admin/get`,
         { id: adminId },
         { headers: { token } }
       );
@@ -151,7 +153,7 @@ export default function ResultManagement() {
       }
 
       const response = await axios.get(
-        "http://localhost:8000/api/marks/center-scores",
+        `${backendUrl}/api/marks/center-scores`,
         {
           headers: { token },
           params: { centerName },
@@ -216,7 +218,7 @@ export default function ResultManagement() {
       };
 
       await axios.put(
-        "http://localhost:8000/api/marks/edit-score",
+        `${backendUrl}/api/marks/edit-score`,
         updateData,
         { headers: { token } }
       );
@@ -262,7 +264,7 @@ export default function ResultManagement() {
         return;
       }
 
-      await axios.delete("http://localhost:8000/api/marks/delete-score", {
+      await axios.delete(`${backendUrl}/api/marks/delete-score`, {
         headers: { token },
         data: { scoreId: id },
       });

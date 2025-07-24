@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import Shimmer from "../Shimmer";
 import StudentsModal from "./StudentsModal";
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 interface Student {
   id: string;
@@ -130,7 +131,7 @@ export default function CourseManagement() {
     try {
       const token = localStorage.getItem("authToken");
       const response = await axios.post<{ success: boolean; data: AdminData }>(
-        "http://localhost:8000/api/admin/get",
+        `${process.env.backendUrl}/api/admin/get`,
         { id: adminId },
         {
           headers: { token },
@@ -166,7 +167,7 @@ export default function CourseManagement() {
       }
 
       const response = await axios.get<CourseData>(
-        "http://localhost:8000/api/course/all",
+        `${process.env.backendUrl}/api/course/all`,
         { headers: { token } }
       );
 
@@ -247,7 +248,7 @@ export default function CourseManagement() {
         center: updatedItem.center,
       };
 
-      await axios.put("http://localhost:8000/api/course/update", updateData, {
+      await axios.put(`${process.env.backendUrl}/api/course/update`, updateData, {
         headers: { token },
       });
 
@@ -278,7 +279,7 @@ export default function CourseManagement() {
 
       const courseId = typeof id === "number" ? id.toString() : id;
 
-      await axios.delete("http://localhost:8000/api/course/delete", {
+      await axios.delete(`${backendUrl}/api/course/delete`, {
         headers: { token },
         data: { id: courseId },
       });
@@ -369,7 +370,7 @@ export default function CourseManagement() {
       };
 
       const response = await axios.post(
-        "http://localhost:8000/api/course/create",
+        `${backendUrl}/api/course/create`,
         payload,
         { headers: { token } }
       );

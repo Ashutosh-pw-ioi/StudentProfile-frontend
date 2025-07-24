@@ -7,6 +7,7 @@ import Table from "../Table";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import Shimmer from "../Shimmer";
+const backendUrl=process.env.NEXT_PUBLIC_BACKEND_URL
 
 const centers = ["Patna", "Bangalore", "Noida", "Indore", "Lucknow", "Pune"];
 
@@ -53,7 +54,7 @@ export default function StudentManagement() {
     try {
       setLoading(true);
       const response = await axios.post(
-        "http://localhost:8000/api/student/get-center-students",
+        `${backendUrl}/api/student/get-center-students`,
         { centerName: selectedCenter },
         { headers: { token } }
       );
@@ -117,7 +118,7 @@ export default function StudentManagement() {
       };
 
       const response = await axios.put(
-        "http://localhost:8000/api/student/edit-student",
+        `${backendUrl}/api/student/edit-student`,
         editPayload,
         { headers: { token } }
       );
@@ -141,7 +142,7 @@ export default function StudentManagement() {
 
     try {
       const response = await axios.delete(
-        "http://localhost:8000/api/student/delete-student",
+        `${backendUrl}/api/student/delete-student`,
         {
           headers: {
             token: token,
@@ -284,7 +285,7 @@ export default function StudentManagement() {
 
             <UploadSection
               onSuccess={triggerRefresh}
-              uploadUrl="http://localhost:8000/api/student/add-student"
+              uploadUrl=`${backendUrl}/api/student/add-student`
               schemaInfo={studentSchemaInfo}
             />
           </div>

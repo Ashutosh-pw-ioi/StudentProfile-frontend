@@ -40,6 +40,7 @@ interface CustomTooltipProps {
   }>;
   label?: string;
 }
+const backendUrl=process.env.NEXT_PUBLIC_BACKEND_URL
 
 export default function AcademicsSection() {
   const [tokenPresent, setTokenPresent] = useState<boolean>(false);
@@ -76,26 +77,26 @@ export default function AcademicsSection() {
   const fetchData = async (token: string) => {
     try {
       const profileRes = await axios.get<ApiResponse>(
-        "http://localhost:8000/api/student/get-student-profile",
+        `${backendUrl}/api/student/get-student-profile`,
         { headers: { token: token } }
       );
       setStudentProfile(profileRes.data.data);
 
       const [academicsRes, batchRes, deptRes] = await Promise.all([
         axios.get<ApiResponse>(
-          "http://localhost:8000/api/student/get-student-academics",
+          `${backendUrl}/api/student/get-student-academics`,
           {
             headers: { token: token },
           }
         ),
         axios.get<ApiResponse>(
-          "http://localhost:8000/api/student/get-batch-leaderboard",
+          `${backendUrl}/api/student/get-batch-leaderboard`,
           {
             headers: { token: token },
           }
         ),
         axios.get<ApiResponse>(
-          "http://localhost:8000/api/student/get-department-leaderboard",
+          `${backendUrl}/api/student/get-department-leaderboard`,
           {
             headers: { token: token },
           }

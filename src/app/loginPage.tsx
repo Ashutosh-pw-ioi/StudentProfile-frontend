@@ -6,6 +6,7 @@ import axios from "axios";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 
+
 interface LoginPageProps {
   role: "student" | "admin" | "teacher";
   imagePath: string;
@@ -60,6 +61,8 @@ export default function LoginPage({
   const [isClient, setIsClient] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const router = useRouter();
+  const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
+  
 
   const config = roleConfig[role];
 
@@ -94,9 +97,11 @@ export default function LoginPage({
 
     setIsLoading(true);
 
+    console.log(`${backendUrl}/api/auth/login`);
+
     try {
       const response = await axios.post<LoginResponse>(
-        "http://localhost:8000/api/auth/login",
+        `${backendUrl}/api/auth/login`,
         {
           email: email.trim(),
           password: password.trim(),

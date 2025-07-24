@@ -8,6 +8,8 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import Shimmer from "../Shimmer";
 import StudentScoresModal from "./StudentScoresModal";
+const backendUrl=process.env.NEXT_PUBLIC_BACKEND_URL
+
 
 const centers = ["Patna", "Bangalore", "Noida", "Indore", "Lucknow", "Pune"];
 
@@ -110,7 +112,7 @@ export default function ResultManagement() {
       }
 
       const response = await axios.post(
-        "http://localhost:8000/api/marks/center-scores",
+        `${backendUrl}/api/marks/center-scores`,
         { centerName: selectedCenter },
         { headers: { token } }
       );
@@ -164,7 +166,7 @@ export default function ResultManagement() {
       };
 
       await axios.put(
-        "http://localhost:8000/api/marks/edit-score",
+        `${backendUrl}/api/marks/edit-score`,
         updateData,
         { headers: { token } }
       );
@@ -198,7 +200,7 @@ export default function ResultManagement() {
         return;
       }
 
-      await axios.delete("http://localhost:8000/api/marks/delete-score", {
+      await axios.delete(`${backendUrl}/api/marks/delete-score`, {
         headers: { token },
         data: { scoreId: id },
       });

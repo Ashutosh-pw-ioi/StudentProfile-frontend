@@ -7,6 +7,7 @@ import axios from "axios";
 import ProfileSkeleton from "./Skeletons/Profile";
 import ActiveCoursesModal from "./Modals/ActiveCoursesModal";
 import { CourseDetail } from "./interfaces/CourseDetails";
+const backendUrl=process.env.NEXT_PUBLIC_BACKEND_URL
 
 interface TeacherData {
   id: string;
@@ -41,7 +42,7 @@ export default function TeacherProfile() {
         }
 
         const response = await axios.get(
-          "http://localhost:8000/api/teacher/teacher-profile",
+          `${backendUrl}/api/teacher/teacher-profile`,
           { headers: { token: token } }
         );
 
