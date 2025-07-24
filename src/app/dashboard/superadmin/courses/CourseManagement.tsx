@@ -6,6 +6,7 @@ import Table from "../Table";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import Shimmer from "../Shimmer";
+const backendUrl=process.env.NEXT_PUBLIC_BACKEND_URL
 
 interface Student {
   id: string;
@@ -119,7 +120,7 @@ export default function CourseManagement() {
       if (!token || !selectedCenter) return;
 
       const response = await axios.post<CourseData>(
-        "http://localhost:8000/api/course/all",
+        `${backendUrl}/api/course/all`,
         { centerName: selectedCenter },
         { headers: { token } }
       );
@@ -187,7 +188,7 @@ export default function CourseManagement() {
         center: updatedItem.center,
       };
 
-      await axios.put("http://localhost:8000/api/course/update", updateData, {
+      await axios.put(`${backendUrl}/api/course/update`, updateData, {
         headers: { token },
       });
 
@@ -212,7 +213,7 @@ export default function CourseManagement() {
 
       const courseId = typeof id === "number" ? id.toString() : id;
 
-      await axios.delete("http://localhost:8000/api/course/delete", {
+      await axios.delete(`${backendUrl}/api/course/delete`, {
         headers: { token },
         data: { id: courseId },
       });
@@ -304,7 +305,7 @@ export default function CourseManagement() {
       };
 
       const response = await axios.post(
-        "http://localhost:8000/api/course/create",
+        `${backendUrl}/api/course/create`,
         payload,
         { headers: { token } }
       );

@@ -6,6 +6,7 @@ import Table from "../Table";
 import { useRouter } from "next/navigation";
 import axios, { AxiosError } from "axios";
 import Shimmer from "../Shimmer";
+const backendUrl=process.env.NEXT_PUBLIC_BACKEND_URL
 
 interface Student {
   id: string;
@@ -114,7 +115,7 @@ export default function BatchManagement() {
       if (!token || !selectedCenter) return;
 
       const response = await axios.post<FullBatchData>(
-        "http://localhost:8000/api/batch/all",
+        `${backendUrl}/api/batch/all`,
         { centerName: selectedCenter },
         { headers: { token } }
       );
@@ -196,7 +197,7 @@ export default function BatchManagement() {
         };
 
         const response = await axios.put(
-          "http://localhost:8000/api/batch/update",
+          `${backendUrl}/api/batch/update`,
           updateData,
           { headers: { token } }
         );
@@ -243,7 +244,7 @@ export default function BatchManagement() {
         }
 
         const response = await axios.delete(
-          "http://localhost:8000/api/batch/delete",
+          `${backendUrl}/api/batch/delete`,
           {
             headers: { token },
             data: { batchId: deleteId },
@@ -334,7 +335,7 @@ export default function BatchManagement() {
         batchName: formData.batchName,
       };
 
-      await axios.post("http://localhost:8000/api/batch/create", payload, {
+      await axios.post(`${backendUrl}/api/batch/create`, payload, {
         headers: { token },
       });
 

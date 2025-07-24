@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import StudentProfileSkeleton from "./Skeletons/Profile";
 import attendanceData from "./constants/AttendanceData";
+const backendUrl=process.env.NEXT_PUBLIC_BACKEND_URL
 
 interface ApiResponse {
   success: boolean;
@@ -67,7 +68,7 @@ export default function StudentProfile() {
         }
 
         const response = await axios.get<ApiResponse>(
-          "http://localhost:8000/api/student/get-student-profile",
+          `${backendUrl}/api/student/get-student-profile`,
           {
             headers: { token: token },
           }

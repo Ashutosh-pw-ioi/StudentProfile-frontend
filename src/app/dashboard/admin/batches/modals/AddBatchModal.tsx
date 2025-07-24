@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios, { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 interface AddBatchModalProps {
   isOpen: boolean;
@@ -95,7 +96,7 @@ const AddBatchModal: React.FC<AddBatchModalProps> = ({
       };
 
       const response = await axios.post(
-        "http://localhost:8000/api/batch/create",
+        `${backendUrl}/api/batch/create`,
         payload,
         { headers: { token } }
       );
