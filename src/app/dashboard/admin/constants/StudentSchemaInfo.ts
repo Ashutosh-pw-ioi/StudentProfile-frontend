@@ -12,15 +12,15 @@ const studentSchemaInfo = {
     "batch",
   ],
   sampleRow: [
-    "John Doe",
-    "john@example.com",
-    "password123",
+    "Aarav Kumar",
+    "aarav.kumar1@pwioi.com",
+    "Pass@123",
     "Male",
-    "1234567890",
-    "ENR2024001",
+    "9876543210",
+    "PATSOT23B1001001",
     "Patna",
     "SOT",
-    "SOT24B1",
+    "SOT25B1",
   ],
   columnDescriptions: [
     { key: "name", description: "Full name of the student" },
@@ -51,7 +51,7 @@ const studentSchemaInfo = {
     "Invalid email formats",
   ],
   downloadLink:
-    "https://glqns72ea6.ufs.sh/f/35ZKzNsv5By61oPdNSQHWyStvbcNAs0uUq6hILf7wZlnmxj8",
+    "https://docs.google.com/spreadsheets/d/1mFMfCSvTwOAQQwB99M75PM5-7BWS8zz0XHTlv2SXo7U/export?format=xlsx",
 };
 
 export default studentSchemaInfo;

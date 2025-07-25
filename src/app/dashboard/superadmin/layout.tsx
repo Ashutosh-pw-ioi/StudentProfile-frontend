@@ -57,12 +57,6 @@ const SuperAdminLayout = ({ children }: { children: React.ReactNode }) => {
       icon: FileText,
       href: "/dashboard/superadmin/results",
     },
-    {
-      id: "help",
-      label: "Help",
-      icon: HelpCircle,
-      href: "/dashboard/superadmin/help",
-    },
   ];
 
   const getActiveSection = () => {
@@ -72,7 +66,6 @@ const SuperAdminLayout = ({ children }: { children: React.ReactNode }) => {
     if (pathname.includes("/courses")) return "course";
     if (pathname.includes("/batches")) return "batch";
     if (pathname.includes("/results")) return "result";
-    if (pathname.includes("/help")) return "help";
     return "center";
   };
 

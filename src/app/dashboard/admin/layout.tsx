@@ -51,12 +51,6 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
       icon: FileText,
       href: "/dashboard/admin/results",
     },
-    {
-      id: "help",
-      label: "Help",
-      icon: HelpCircle,
-      href: "/dashboard/admin/help",
-    },
   ];
 
   const getActiveSection = () => {
@@ -65,7 +59,6 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
     if (pathname.includes("/courses")) return "course";
     if (pathname.includes("/batches")) return "batch";
     if (pathname.includes("/results")) return "result";
-    if (pathname.includes("/help")) return "help";
     return "student";
   };
 

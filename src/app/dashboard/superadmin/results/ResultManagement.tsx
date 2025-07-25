@@ -384,7 +384,7 @@ export default function ResultManagement() {
 
           <Table
             data={transformedCourses}
-            title="Courses Overview"
+            title="Result Overview"
             filterField="department"
             badgeFields={["department"]}
             selectFields={{
@@ -401,7 +401,7 @@ export default function ResultManagement() {
                     );
                     if (fullCourse) openScoresModal(fullCourse);
                   }}
-                  className="text-blue-600 hover:text-blue-800 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded px-1"
+                  className="text-blue-600 hover:text-blue-800 font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-1 rounded px-1 cursor-pointer"
                   disabled={row.students === 0}
                 >
                   {row.students} students
