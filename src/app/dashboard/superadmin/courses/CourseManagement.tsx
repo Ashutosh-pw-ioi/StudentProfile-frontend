@@ -142,7 +142,7 @@ export default function CourseManagement() {
         batch: course.batchName,
         department: course.depName,
         center: course.centerName,
-        teachers: course.teachers.map((t) => t.name).join(", "),
+        teachers: course.teachers.length.toString(), // Fixed: Show count instead of names
         students: course.students.length,
         teachersFull: course.teachers,
         studentsFull: course.students,
@@ -370,14 +370,18 @@ export default function CourseManagement() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        {/* Students Modal */}
-        {studentsModalOpen && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">
-                Students List
-              </h3>
+      {/* Students Modal */}
+      {studentsModalOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">
+              Students List ({currentStudents.length})
+            </h3>
+            {currentStudents.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-500">No students enrolled in this course</p>
+              </div>
+            ) : (
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
@@ -396,7 +400,7 @@ export default function CourseManagement() {
                   <tbody className="bg-white divide-y divide-gray-200">
                     {currentStudents.map((student) => (
                       <tr key={student.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                           {student.name}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -410,25 +414,31 @@ export default function CourseManagement() {
                   </tbody>
                 </table>
               </div>
-              <div className="mt-4 flex justify-end">
-                <button
-                  onClick={() => setStudentsModalOpen(false)}
-                  className="px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#122A4E] cursor-pointer"
-                >
-                  Close
-                </button>
-              </div>
+            )}
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={() => setStudentsModalOpen(false)}
+                className="px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#122A4E]"
+              >
+                Close
+              </button>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
-        {/* Teachers Modal */}
-        {teachersModalOpen && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">
-                Teachers List
-              </h3>
+      {/* Teachers Modal */}
+      {teachersModalOpen && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+            <h3 className="text-xl font-bold text-gray-800 mb-4">
+              Teachers List ({currentTeachers.length})
+            </h3>
+            {currentTeachers.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-500">No teachers assigned to this course</p>
+              </div>
+            ) : (
               <div className="overflow-x-auto">
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
@@ -444,7 +454,7 @@ export default function CourseManagement() {
                   <tbody className="bg-white divide-y divide-gray-200">
                     {currentTeachers.map((teacher) => (
                       <tr key={teacher.id}>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                           {teacher.name}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
@@ -455,17 +465,18 @@ export default function CourseManagement() {
                   </tbody>
                 </table>
               </div>
-              <div className="mt-4 flex justify-end">
-                <button
-                  onClick={() => setTeachersModalOpen(false)}
-                  className="px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#122A4E] cursor-pointer"
-                >
-                  Close
-                </button>
-              </div>
+            )}
+            <div className="mt-4 flex justify-end">
+              <button
+                onClick={() => setTeachersModalOpen(false)}
+                className="px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#122A4E]"
+              >
+                Close
+              </button>
             </div>
           </div>
-        )}
+        </div>
+      )}
 
         {/* Add Course Modal */}
         {isAddCourseModalOpen && (
@@ -721,7 +732,8 @@ export default function CourseManagement() {
           </div>
         )}
 
-        <h2 className="ttext-2xl sm:ext-3xl font-bold text-gray-800 mb-2">
+      <div className="flex justify-between items-center">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
           Course Management
         </h2>
 
@@ -795,7 +807,7 @@ export default function CourseManagement() {
           department: ["SOT", "SOM", "SOH"],
           batch: ["SOT25B1", "SOT25B2", "SOM25B1", "SOM25B2"],
         }}
-        nonEditableFields={["id", "center"]}
+        nonEditableFields={["id", "center",'students','teachers']}
         hiddenColumns={["id", "teachersFull", "studentsFull"]}
         onEdit={handleUpdateCourse}
         onDelete={handleDeleteCourse}
@@ -805,7 +817,7 @@ export default function CourseManagement() {
               onClick={() => openTeachersModal(item.teachersFull)}
               className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
             >
-              {item.teachers}
+              {item.teachers} teachers
             </button>
           ),
           students: (item) => (
