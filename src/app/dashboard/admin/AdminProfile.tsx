@@ -8,7 +8,7 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import Shimmer from "./Shimmer";
 import studentSchemaInfo from "./constants/StudentSchemaInfo";
-const backendUrl=process.env.NEXT_PUBLIC_BACKEND_URL
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 function getSemesterString(semesterNo: number): string {
   if (semesterNo === 1) return "1st";
@@ -118,9 +118,9 @@ export default function AdminProfile() {
         depName: originalStudent.department.name,
         batchName: originalStudent.batch.name,
         name: updatedItem.name,
+        semesterNo: getSemesterNumber(updatedItem.semester),
         gender: "Male",
         phoneNumber: "0000000000",
-        semesterNo: getSemesterNumber(updatedItem.semester),
         password: "password",
       };
 

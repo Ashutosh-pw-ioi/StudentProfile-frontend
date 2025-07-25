@@ -53,7 +53,7 @@ const teacherSchemaInfo = {
     "Course not found in the specified batch",
   ],
   downloadLink:
-    "https://glqns72ea6.ufs.sh/f/35ZKzNsv5By61oPdNSQHWyStvbcNAs0uUq6hILf7wZlnmxj8",
+    "https://docs.google.com/spreadsheets/d/1e4wsdkADkYARc8Bj2tjwLPZ-3gyP_ggYOBFleMx5Fv8/export?format=xlsx",
 };
 
 export default teacherSchemaInfo;
