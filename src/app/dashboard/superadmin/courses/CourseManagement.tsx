@@ -1,12 +1,12 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { BookOpen, Plus, ChevronDown } from "lucide-react";
+import { BookOpen, Plus, ChevronDown, X } from "lucide-react";
 import Table from "../Table";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import Shimmer from "../Shimmer";
-const backendUrl=process.env.NEXT_PUBLIC_BACKEND_URL
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 interface Student {
   id: string;
@@ -360,7 +360,7 @@ export default function CourseManagement() {
             setError("");
             setRefreshTrigger((prev) => prev + 1);
           }}
-          className="mt-2 px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#122A4E]"
+          className="mt-2 px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#122A4E] cursor-pointer"
         >
           Retry
         </button>
@@ -370,323 +370,357 @@ export default function CourseManagement() {
 
   return (
     <div className="space-y-6">
-      {/* Students Modal */}
-      {studentsModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">
-              Students List
-            </h3>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Name
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Email
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Enrollment Number
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {currentStudents.map((student) => (
-                    <tr key={student.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {student.name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {student.email}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {student.enrollmentNumber}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div className="mt-4 flex justify-end">
-              <button
-                onClick={() => setStudentsModalOpen(false)}
-                className="px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#122A4E]"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Teachers Modal */}
-      {teachersModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">
-              Teachers List
-            </h3>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Name
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Email
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {currentTeachers.map((teacher) => (
-                    <tr key={teacher.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {teacher.name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {teacher.email}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <div className="mt-4 flex justify-end">
-              <button
-                onClick={() => setTeachersModalOpen(false)}
-                className="px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#122A4E]"
-              >
-                Close
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Add Course Modal */}
-      {isAddCourseModalOpen && (
-        <div className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg p-6 max-w-md w-full">
-            <h3 className="text-xl font-bold text-gray-800 mb-4">
-              Add New Course
-            </h3>
-
-            {formErrors.submit && (
-              <div className="mb-4 p-2 bg-red-50 text-red-600 rounded">
-                {formErrors.submit}
-              </div>
-            )}
-
-            <form onSubmit={handleSubmit}>
-              <div className="space-y-4">
-                {/* Center Name */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Center
-                  </label>
-                  <input
-                    type="text"
-                    value={selectedCenter}
-                    readOnly
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100"
-                  />
-                </div>
-
-                {/* Department */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Department *
-                  </label>
-                  <select
-                    name="departmentName"
-                    value={formData.departmentName}
-                    onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-md ${
-                      formErrors.departmentName
-                        ? "border-red-500"
-                        : "border-gray-300"
-                    }`}
-                  >
-                    <option value="">Select Department</option>
-                    <option value="SOT">School of Technology (SOT)</option>
-                    <option value="SOM">School of Management (SOM)</option>
-                    <option value="SOH">School of HealthCare (SOH)</option>
-                  </select>
-                  {formErrors.departmentName && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {formErrors.departmentName}
-                    </p>
-                  )}
-                </div>
-
-                {/* Batch */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Batch Name *
-                  </label>
-                  <input
-                    type="text"
-                    name="batchName"
-                    value={formData.batchName}
-                    onChange={handleInputChange}
-                    placeholder="e.g., SOT24B1"
-                    className={`w-full px-3 py-2 border rounded-md ${
-                      formErrors.batchName
-                        ? "border-red-500"
-                        : "border-gray-300"
-                    }`}
-                  />
-                  {formErrors.batchName && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {formErrors.batchName}
-                    </p>
-                  )}
-                </div>
-
-                {/* Semester */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Semester Number *
-                  </label>
-                  <input
-                    type="number"
-                    name="semesterNumber"
-                    value={formData.semesterNumber}
-                    onChange={handleInputChange}
-                    min="1"
-                    max="8"
-                    className={`w-full px-3 py-2 border rounded-md ${
-                      formErrors.semesterNumber
-                        ? "border-red-500"
-                        : "border-gray-300"
-                    }`}
-                  />
-                  {formErrors.semesterNumber && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {formErrors.semesterNumber}
-                    </p>
-                  )}
-                </div>
-
-                {/* Course Name */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Course Name *
-                  </label>
-                  <input
-                    type="text"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    className={`w-full px-3 py-2 border rounded-md ${
-                      formErrors.name ? "border-red-500" : "border-gray-300"
-                    }`}
-                  />
-                  {formErrors.name && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {formErrors.name}
-                    </p>
-                  )}
-                </div>
-
-                {/* Course Code */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Course Code *
-                  </label>
-                  <input
-                    type="text"
-                    name="code"
-                    value={formData.code}
-                    onChange={handleInputChange}
-                    placeholder="e.g., CS201"
-                    className={`w-full px-3 py-2 border rounded-md ${
-                      formErrors.code ? "border-red-500" : "border-gray-300"
-                    }`}
-                  />
-                  {formErrors.code && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {formErrors.code}
-                    </p>
-                  )}
-                </div>
-
-                {/* Credits */}
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Credits
-                  </label>
-                  <input
-                    type="number"
-                    name="credits"
-                    value={formData.credits}
-                    onChange={handleInputChange}
-                    min="1"
-                    max="10"
-                    className={`w-full px-3 py-2 border rounded-md ${
-                      formErrors.credits ? "border-red-500" : "border-gray-300"
-                    }`}
-                  />
-                  {formErrors.credits && (
-                    <p className="mt-1 text-sm text-red-600">
-                      {formErrors.credits}
-                    </p>
-                  )}
-                </div>
-              </div>
-
-              <div className="mt-6 flex justify-end space-x-3">
-                <button
-                  type="button"
-                  onClick={() => setIsAddCourseModalOpen(false)}
-                  className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50"
-                  disabled={isSubmitting}
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-[#1B3A6A] text-white rounded-md hover:bg-[#122A4E] flex items-center"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <svg
-                        className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      Creating...
-                    </>
-                  ) : (
-                    "Create Course"
-                  )}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
       <div className="flex justify-between items-center">
+        {/* Students Modal */}
+        {studentsModalOpen && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+              <h3 className="text-xl font-bold text-gray-800 mb-4">
+                Students List
+              </h3>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Name
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Email
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Enrollment Number
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {currentStudents.map((student) => (
+                      <tr key={student.id}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {student.name}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {student.email}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {student.enrollmentNumber}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="mt-4 flex justify-end">
+                <button
+                  onClick={() => setStudentsModalOpen(false)}
+                  className="px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#122A4E] cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Teachers Modal */}
+        {teachersModalOpen && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
+              <h3 className="text-xl font-bold text-gray-800 mb-4">
+                Teachers List
+              </h3>
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Name
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Email
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {currentTeachers.map((teacher) => (
+                      <tr key={teacher.id}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {teacher.name}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {teacher.email}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <div className="mt-4 flex justify-end">
+                <button
+                  onClick={() => setTeachersModalOpen(false)}
+                  className="px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#122A4E] cursor-pointer"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Add Course Modal */}
+        {isAddCourseModalOpen && (
+          <div className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50 p-4">
+            <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] flex flex-col shadow-2xl">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <h3 className="text-xl font-bold text-gray-800">
+                  Add New Course
+                </h3>
+                <button
+                  onClick={() => setIsAddCourseModalOpen(false)}
+                  className="p-1 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+                  title="Close"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
+
+              {/* Modal Content - Scrollable */}
+              <form
+                onSubmit={handleSubmit}
+                className="flex flex-col flex-1 min-h-0"
+              >
+                <div className="flex-1 overflow-y-auto p-6">
+                  {formErrors.submit && (
+                    <div className="mb-4 p-2 bg-red-50 text-red-600 rounded">
+                      {formErrors.submit}
+                    </div>
+                  )}
+
+                  <div className="space-y-4">
+                    {/* Center Name */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Center
+                      </label>
+                      <input
+                        type="text"
+                        value={selectedCenter}
+                        readOnly
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100"
+                      />
+                    </div>
+
+                    {/* Department */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Department *
+                      </label>
+
+                      <div className="relative">
+                        <select
+                          name="departmentName"
+                          value={formData.departmentName}
+                          onChange={handleInputChange}
+                          className={`w-full pl-2 pr-10 py-2 border rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-[#1B3A6A] focus:border-[#1B3A6A] appearance-none cursor-pointer ${
+                            formErrors.departmentName
+                              ? "border-red-500"
+                              : "border-gray-300"
+                          }`}
+                        >
+                          <option value="">Select Department</option>
+                          <option value="SOT">
+                            School of Technology (SOT)
+                          </option>
+                          <option value="SOM">
+                            School of Management (SOM)
+                          </option>
+                          <option value="SOH">
+                            School of HealthCare (SOH)
+                          </option>
+                        </select>
+
+                        <ChevronDown
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none"
+                          size={18}
+                        />
+                      </div>
+
+                      {formErrors.departmentName && (
+                        <p className="mt-1 text-sm text-red-600">
+                          {formErrors.departmentName}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Batch */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Batch Name *
+                      </label>
+                      <input
+                        type="text"
+                        name="batchName"
+                        value={formData.batchName}
+                        onChange={handleInputChange}
+                        placeholder="e.g., SOT24B1"
+                        className={`w-full px-3 py-2 border rounded-md ${
+                          formErrors.batchName
+                            ? "border-red-500"
+                            : "border-gray-300"
+                        }`}
+                      />
+                      {formErrors.batchName && (
+                        <p className="mt-1 text-sm text-red-600">
+                          {formErrors.batchName}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Semester */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Semester Number *
+                      </label>
+                      <input
+                        type="number"
+                        name="semesterNumber"
+                        value={formData.semesterNumber}
+                        onChange={handleInputChange}
+                        min="1"
+                        max="8"
+                        className={`w-full px-3 py-2 border rounded-md ${
+                          formErrors.semesterNumber
+                            ? "border-red-500"
+                            : "border-gray-300"
+                        }`}
+                      />
+                      {formErrors.semesterNumber && (
+                        <p className="mt-1 text-sm text-red-600">
+                          {formErrors.semesterNumber}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Course Name */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Course Name *
+                      </label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        className={`w-full px-3 py-2 border rounded-md ${
+                          formErrors.name ? "border-red-500" : "border-gray-300"
+                        }`}
+                      />
+                      {formErrors.name && (
+                        <p className="mt-1 text-sm text-red-600">
+                          {formErrors.name}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Course Code */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Course Code *
+                      </label>
+                      <input
+                        type="text"
+                        name="code"
+                        value={formData.code}
+                        onChange={handleInputChange}
+                        placeholder="e.g., CS201"
+                        className={`w-full px-3 py-2 border rounded-md ${
+                          formErrors.code ? "border-red-500" : "border-gray-300"
+                        }`}
+                      />
+                      {formErrors.code && (
+                        <p className="mt-1 text-sm text-red-600">
+                          {formErrors.code}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Credits */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Credits
+                      </label>
+                      <input
+                        type="number"
+                        name="credits"
+                        value={formData.credits}
+                        onChange={handleInputChange}
+                        min="1"
+                        max="10"
+                        className={`w-full px-3 py-2 border rounded-md ${
+                          formErrors.credits
+                            ? "border-red-500"
+                            : "border-gray-300"
+                        }`}
+                      />
+                      {formErrors.credits && (
+                        <p className="mt-1 text-sm text-red-600">
+                          {formErrors.credits}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Modal Footer - Fixed at bottom, matching Edit Modal style */}
+                <div className="flex justify-end space-x-4 p-6 border-t border-gray-200 bg-gray-50">
+                  <button
+                    type="button"
+                    onClick={() => setIsAddCourseModalOpen(false)}
+                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
+                    disabled={isSubmitting}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#122A4E] transition-colors cursor-pointer flex items-center"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <svg
+                          className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                        >
+                          <circle
+                            className="opacity-25"
+                            cx="12"
+                            cy="12"
+                            r="10"
+                            stroke="currentColor"
+                            strokeWidth="4"
+                          ></circle>
+                          <path
+                            className="opacity-75"
+                            fill="currentColor"
+                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                          ></path>
+                        </svg>
+                        Creating...
+                      </>
+                    ) : (
+                      "Create Course"
+                    )}
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
+
         <h2 className="ttext-2xl sm:ext-3xl font-bold text-gray-800 mb-2">
           Course Management
         </h2>
@@ -739,7 +773,7 @@ export default function CourseManagement() {
         <div className="bg-white/80 shadow-lg rounded-lg flex items-center justify-center p-6">
           <button
             onClick={() => setIsAddCourseModalOpen(true)}
-            className="flex flex-col items-center justify-center w-full h-full text-[#1B3A6A] hover:text-[#122A4E] transition-colors"
+            className="flex flex-col items-center justify-center w-full h-full text-[#1B3A6A] hover:text-[#122A4E] transition-colors cursor-pointer"
           >
             <div className="bg-gray-200 rounded-full p-3 mb-2">
               <Plus size={24} />
@@ -769,7 +803,7 @@ export default function CourseManagement() {
           teachers: (item) => (
             <button
               onClick={() => openTeachersModal(item.teachersFull)}
-              className="text-blue-600 hover:text-blue-800 hover:underline"
+              className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
             >
               {item.teachers}
             </button>
@@ -777,7 +811,7 @@ export default function CourseManagement() {
           students: (item) => (
             <button
               onClick={() => openStudentsModal(item.studentsFull)}
-              className="text-blue-600 hover:text-blue-800 hover:underline"
+              className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
             >
               {item.students} students
             </button>
