@@ -6,7 +6,7 @@ import Table from "../Table";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import Shimmer from "../Shimmer";
-const backendUrl=process.env.NEXT_PUBLIC_BACKEND_URL
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 interface Student {
   id: string;
@@ -142,7 +142,7 @@ export default function CourseManagement() {
         batch: course.batchName,
         department: course.depName,
         center: course.centerName,
-        teachers: course.teachers.map((t) => t.name).join(", "),
+        teachers: course.teachers.length.toString(), // Fixed: Show count instead of names
         students: course.students.length,
         teachersFull: course.teachers,
         studentsFull: course.students,
@@ -375,40 +375,46 @@ export default function CourseManagement() {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
             <h3 className="text-xl font-bold text-gray-800 mb-4">
-              Students List
+              Students List ({currentStudents.length})
             </h3>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Name
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Email
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Enrollment Number
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {currentStudents.map((student) => (
-                    <tr key={student.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {student.name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {student.email}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {student.enrollmentNumber}
-                      </td>
+            {currentStudents.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-500">No students enrolled in this course</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Name
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Email
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Enrollment Number
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {currentStudents.map((student) => (
+                      <tr key={student.id}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {student.name}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {student.email}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {student.enrollmentNumber}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
             <div className="mt-4 flex justify-end">
               <button
                 onClick={() => setStudentsModalOpen(false)}
@@ -426,34 +432,40 @@ export default function CourseManagement() {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-lg p-6 max-w-2xl w-full max-h-[80vh] overflow-y-auto">
             <h3 className="text-xl font-bold text-gray-800 mb-4">
-              Teachers List
+              Teachers List ({currentTeachers.length})
             </h3>
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Name
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Email
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {currentTeachers.map((teacher) => (
-                    <tr key={teacher.id}>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {teacher.name}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                        {teacher.email}
-                      </td>
+            {currentTeachers.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-500">No teachers assigned to this course</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Name
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Email
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {currentTeachers.map((teacher) => (
+                      <tr key={teacher.id}>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                          {teacher.name}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                          {teacher.email}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
             <div className="mt-4 flex justify-end">
               <button
                 onClick={() => setTeachersModalOpen(false)}
@@ -687,7 +699,7 @@ export default function CourseManagement() {
       )}
 
       <div className="flex justify-between items-center">
-        <h2 className="ttext-2xl sm:ext-3xl font-bold text-gray-800 mb-2">
+        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
           Course Management
         </h2>
 
@@ -761,7 +773,7 @@ export default function CourseManagement() {
           department: ["SOT", "SOM", "SOH"],
           batch: ["SOT25B1", "SOT25B2", "SOM25B1", "SOM25B2"],
         }}
-        nonEditableFields={["id", "center"]}
+        nonEditableFields={["id", "center",'students','teachers']}
         hiddenColumns={["id", "teachersFull", "studentsFull"]}
         onEdit={handleUpdateCourse}
         onDelete={handleDeleteCourse}
@@ -771,7 +783,7 @@ export default function CourseManagement() {
               onClick={() => openTeachersModal(item.teachersFull)}
               className="text-blue-600 hover:text-blue-800 hover:underline"
             >
-              {item.teachers}
+              {item.teachers} teachers
             </button>
           ),
           students: (item) => (
