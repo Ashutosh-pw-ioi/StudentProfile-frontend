@@ -7,6 +7,7 @@ import Table from "../Table";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import Shimmer from "../Shimmer";
+import teacherSchemaInfo from "../../admin/constants/TeacherSchemaInfo";
 const backendUrl=process.env.NEXT_PUBLIC_BACKEND_URL
 
 const centers = ["Patna", "Bangalore", "Noida", "Indore", "Lucknow", "Pune"];
@@ -150,64 +151,6 @@ export default function TeachersManagement() {
           "Failed to delete teacher"
       );
     }
-  };
-
-  const teacherSchemaInfo = {
-    title: "Teacher Upload",
-    columns: [
-      "name",
-      "email",
-      "password",
-      "gender",
-      "phoneNumber",
-      "experience",
-      "centerName",
-      "departmentName",
-      "batchName",
-      "courseName",
-    ],
-    sampleRow: [
-      "Jane Smith",
-      "jane@example.com",
-      "securePassword",
-      "Female",
-      "0987654321",
-      "5",
-      selectedCenter || "Patna",
-      "SOT",
-      "SOT24B1",
-      "Mathematics",
-    ],
-    columnDescriptions: [
-      { key: "name", description: "Full name of the teacher" },
-      { key: "email", description: "Email address of the teacher" },
-      { key: "password", description: "Password for teacher account" },
-      { key: "gender", description: "Gender (Male, Female, Other)" },
-      { key: "phoneNumber", description: "Phone number (10 digits)" },
-      { key: "experience", description: "Years of teaching experience" },
-      { key: "centerName", description: "Center name (e.g., Patna)" },
-      { key: "departmentName", description: "Department (SOT, SOM, SOH)" },
-      { key: "batchName", description: "Batch name (e.g., SOT24B1)" },
-      { key: "courseName", description: "Course name (e.g., Mathematics)" },
-    ],
-    guidelines: [
-      "Column headers must match exactly",
-      "All fields are required",
-      "Department should be one of: SOT, SOM, SOH",
-      "Center name must match existing centers",
-      "Batch names must match existing batches",
-      "Course names must match existing courses in the specified batch",
-    ],
-    commonIssues: [
-      "Wrong column names",
-      "Missing required fields",
-      "Incorrect department, center, or course names",
-      "Duplicate email addresses",
-      "Invalid experience values (should be a number)",
-      "Course not found in the specified batch",
-    ],
-    downloadLink:
-      "https://glqns72ea6.ufs.sh/f/35ZKzNsv5By61oPdNSQHWyStvbcNAs0uUq6hILf7wZlnmxj8",
   };
 
   if (loading) return <Shimmer />;

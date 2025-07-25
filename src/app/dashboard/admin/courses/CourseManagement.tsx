@@ -1,12 +1,13 @@
 "use client";
 
 import React, { useState, useEffect, useCallback } from "react";
-import { BookOpen, Plus } from "lucide-react";
+import { BookOpen, ChevronDown, Plus, X } from "lucide-react";
 import Table from "../Table";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import Shimmer from "../Shimmer";
 import StudentsModal from "./StudentsModal";
+import TeachersModal from "./TeacherModals"; // Add this import
 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 interface Student {
@@ -87,7 +88,9 @@ export default function CourseManagement() {
   const router = useRouter();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [studentsModalOpen, setStudentsModalOpen] = useState(false);
+  const [teachersModalOpen, setTeachersModalOpen] = useState(false); // Add this state
   const [currentStudents, setCurrentStudents] = useState<Student[]>([]);
+  const [currentTeachers, setCurrentTeachers] = useState<Teacher[]>([]); // Add this state
   const [isAddCourseModalOpen, setIsAddCourseModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     centerName: "",
@@ -131,7 +134,7 @@ export default function CourseManagement() {
     try {
       const token = localStorage.getItem("authToken");
       const response = await axios.post<{ success: boolean; data: AdminData }>(
-        `${process.env.backendUrl}/api/admin/get`,
+        `${backendUrl}/api/admin/get`,
         { id: adminId },
         {
           headers: { token },
@@ -167,7 +170,7 @@ export default function CourseManagement() {
       }
 
       const response = await axios.get<CourseData>(
-        `${process.env.backendUrl}/api/course/all`,
+        `${backendUrl}/api/course/all`,
         { headers: { token } }
       );
 
@@ -196,7 +199,7 @@ export default function CourseManagement() {
         batch: course.batchName,
         department: course.depName,
         center: course.centerName,
-        teachers: course.teachers.map((t) => t.name).join(", "),
+        teachers: course.teachers.length.toString(), // Changed to show count only
         students: course.students.length,
         teachersFull: course.teachers,
         studentsFull: course.students,
@@ -248,7 +251,7 @@ export default function CourseManagement() {
         center: updatedItem.center,
       };
 
-      await axios.put(`${process.env.backendUrl}/api/course/update`, updateData, {
+      await axios.put(`${backendUrl}/api/course/update`, updateData, {
         headers: { token },
       });
 
@@ -304,6 +307,12 @@ export default function CourseManagement() {
   const openStudentsModal = (students: Student[]) => {
     setCurrentStudents(students);
     setStudentsModalOpen(true);
+  };
+
+  // Add this function for teachers modal
+  const openTeachersModal = (teachers: Teacher[]) => {
+    setCurrentTeachers(teachers);
+    setTeachersModalOpen(true);
   };
 
   const handleInputChange = (
@@ -431,182 +440,221 @@ export default function CourseManagement() {
       <div className="flex justify-between">
         {isAddCourseModalOpen && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-lg flex items-center justify-center z-50 p-4">
-            <div className="bg-white rounded-lg p-6 max-w-md w-full">
-              <h3 className="text-xl font-bold text-gray-800 mb-4">
-                Add New Course
-              </h3>
+            <div className="bg-white rounded-lg max-w-md w-full max-h-[90vh] flex flex-col shadow-2xl">
+              {/* Modal Header */}
+              <div className="flex items-center justify-between p-6 border-b border-gray-200">
+                <h3 className="text-xl font-bold text-gray-800">
+                  Add New Course
+                </h3>
+                <button
+                  onClick={() => setIsAddCourseModalOpen(false)}
+                  className="p-1 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
+                  title="Close"
+                >
+                  <X className="w-5 h-5 text-gray-500" />
+                </button>
+              </div>
 
-              {formErrors.submit && (
-                <div className="mb-4 p-2 bg-red-50 text-red-600 rounded">
-                  {formErrors.submit}
+              {/* Modal Content - Scrollable */}
+              <form
+                onSubmit={handleSubmit}
+                className="flex flex-col flex-1 min-h-0"
+              >
+                <div className="flex-1 overflow-y-auto p-6">
+                  {formErrors.submit && (
+                    <div className="mb-4 p-2 bg-red-50 text-red-600 rounded">
+                      {formErrors.submit}
+                    </div>
+                  )}
+
+                  <div className="space-y-4">
+                    {/* Center Name */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Center
+                      </label>
+                      <input
+                        type="text"
+                        value={userCenter}
+                        readOnly
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100"
+                      />
+                    </div>
+
+                    {/* Department */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Department *
+                      </label>
+
+                      <div className="relative">
+                        <select
+                          name="departmentName"
+                          value={formData.departmentName}
+                          onChange={handleInputChange}
+                          className={`w-full pl-2 pr-10 py-2 border rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-[#1B3A6A] focus:border-[#1B3A6A] appearance-none cursor-pointer ${
+                            formErrors.departmentName
+                              ? "border-red-500"
+                              : "border-gray-300"
+                          }`}
+                        >
+                          <option value="">Select Department</option>
+                          <option value="SOT">
+                            School of Technology (SOT)
+                          </option>
+                          <option value="SOM">
+                            School of Management (SOM)
+                          </option>
+                          <option value="SOH">
+                            School of Humanities (SOH)
+                          </option>
+                        </select>
+
+                        <ChevronDown
+                          className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none"
+                          size={18}
+                        />
+                      </div>
+
+                      {formErrors.departmentName && (
+                        <p className="mt-1 text-sm text-red-600">
+                          {formErrors.departmentName}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Batch */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Batch Name *
+                      </label>
+                      <input
+                        type="text"
+                        name="batchName"
+                        value={formData.batchName}
+                        onChange={handleInputChange}
+                        placeholder="e.g., SOT24B1"
+                        className={`w-full px-3 py-2 border rounded-md ${
+                          formErrors.batchName
+                            ? "border-red-500"
+                            : "border-gray-300"
+                        }`}
+                      />
+                      {formErrors.batchName && (
+                        <p className="mt-1 text-sm text-red-600">
+                          {formErrors.batchName}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Semester */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Semester Number *
+                      </label>
+                      <input
+                        type="number"
+                        name="semesterNumber"
+                        value={formData.semesterNumber}
+                        onChange={handleInputChange}
+                        min="1"
+                        max="8"
+                        className={`w-full px-3 py-2 border rounded-md ${
+                          formErrors.semesterNumber
+                            ? "border-red-500"
+                            : "border-gray-300"
+                        }`}
+                      />
+                      {formErrors.semesterNumber && (
+                        <p className="mt-1 text-sm text-red-600">
+                          {formErrors.semesterNumber}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Course Name */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Course Name *
+                      </label>
+                      <input
+                        type="text"
+                        name="name"
+                        value={formData.name}
+                        onChange={handleInputChange}
+                        className={`w-full px-3 py-2 border rounded-md ${
+                          formErrors.name ? "border-red-500" : "border-gray-300"
+                        }`}
+                      />
+                      {formErrors.name && (
+                        <p className="mt-1 text-sm text-red-600">
+                          {formErrors.name}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Course Code */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Course Code *
+                      </label>
+                      <input
+                        type="text"
+                        name="code"
+                        value={formData.code}
+                        onChange={handleInputChange}
+                        placeholder="e.g., CS201"
+                        className={`w-full px-3 py-2 border rounded-md ${
+                          formErrors.code ? "border-red-500" : "border-gray-300"
+                        }`}
+                      />
+                      {formErrors.code && (
+                        <p className="mt-1 text-sm text-red-600">
+                          {formErrors.code}
+                        </p>
+                      )}
+                    </div>
+
+                    {/* Credits */}
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Credits
+                      </label>
+                      <input
+                        type="number"
+                        name="credits"
+                        value={formData.credits}
+                        onChange={handleInputChange}
+                        min="1"
+                        max="10"
+                        className={`w-full px-3 py-2 border rounded-md ${
+                          formErrors.credits
+                            ? "border-red-500"
+                            : "border-gray-300"
+                        }`}
+                      />
+                      {formErrors.credits && (
+                        <p className="mt-1 text-sm text-red-600">
+                          {formErrors.credits}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              )}
 
-              <form onSubmit={handleSubmit}>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Center
-                    </label>
-                    <input
-                      type="text"
-                      value={userCenter}
-                      readOnly
-                      className="w-full px-3 py-2 border border-gray-300 rounded-md bg-gray-100"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Department *
-                    </label>
-                    <select
-                      name="departmentName"
-                      value={formData.departmentName}
-                      onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-md ${
-                        formErrors.departmentName
-                          ? "border-red-500"
-                          : "border-gray-300"
-                      }`}
-                    >
-                      <option value="">Select Department</option>
-                      <option value="SOT">School of Technology (SOT)</option>
-                      <option value="SOM">School of Management (SOM)</option>
-                      <option value="SOH">School of Humanities (SOH)</option>
-                    </select>
-                    {formErrors.departmentName && (
-                      <p className="mt-1 text-sm text-red-600">
-                        {formErrors.departmentName}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Batch Name *
-                    </label>
-                    <input
-                      type="text"
-                      name="batchName"
-                      value={formData.batchName}
-                      onChange={handleInputChange}
-                      placeholder="e.g., SOT24B1"
-                      className={`w-full px-3 py-2 border rounded-md ${
-                        formErrors.batchName
-                          ? "border-red-500"
-                          : "border-gray-300"
-                      }`}
-                    />
-                    {formErrors.batchName && (
-                      <p className="mt-1 text-sm text-red-600">
-                        {formErrors.batchName}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Semester Number *
-                    </label>
-                    <input
-                      type="number"
-                      name="semesterNumber"
-                      value={formData.semesterNumber}
-                      onChange={handleInputChange}
-                      min="1"
-                      max="8"
-                      className={`w-full px-3 py-2 border rounded-md ${
-                        formErrors.semesterNumber
-                          ? "border-red-500"
-                          : "border-gray-300"
-                      }`}
-                    />
-                    {formErrors.semesterNumber && (
-                      <p className="mt-1 text-sm text-red-600">
-                        {formErrors.semesterNumber}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Course Name *
-                    </label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleInputChange}
-                      className={`w-full px-3 py-2 border rounded-md ${
-                        formErrors.name ? "border-red-500" : "border-gray-300"
-                      }`}
-                    />
-                    {formErrors.name && (
-                      <p className="mt-1 text-sm text-red-600">
-                        {formErrors.name}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Course Code *
-                    </label>
-                    <input
-                      type="text"
-                      name="code"
-                      value={formData.code}
-                      onChange={handleInputChange}
-                      placeholder="e.g., CS201"
-                      className={`w-full px-3 py-2 border rounded-md ${
-                        formErrors.code ? "border-red-500" : "border-gray-300"
-                      }`}
-                    />
-                    {formErrors.code && (
-                      <p className="mt-1 text-sm text-red-600">
-                        {formErrors.code}
-                      </p>
-                    )}
-                  </div>
-
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">
-                      Credits
-                    </label>
-                    <input
-                      type="number"
-                      name="credits"
-                      value={formData.credits}
-                      onChange={handleInputChange}
-                      min="1"
-                      max="10"
-                      className={`w-full px-3 py-2 border rounded-md ${
-                        formErrors.credits
-                          ? "border-red-500"
-                          : "border-gray-300"
-                      }`}
-                    />
-                    {formErrors.credits && (
-                      <p className="mt-1 text-sm text-red-600">
-                        {formErrors.credits}
-                      </p>
-                    )}
-                  </div>
-                </div>
-
-                <div className="mt-6 flex justify-end space-x-3">
+                {/* Modal Footer - Fixed at bottom */}
+                <div className="flex justify-end space-x-4 p-6 border-t border-gray-200 bg-gray-50">
                   <button
                     type="button"
                     onClick={() => setIsAddCourseModalOpen(false)}
-                    className="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 cursor-pointer"
+                    className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition-colors cursor-pointer"
                     disabled={isSubmitting}
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-4 py-2 bg-[#1B3A6A] text-white rounded-md hover:bg-[#122A4E] flex items-center cursor-pointer"
+                    className="px-4 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#122A4E] transition-colors cursor-pointer flex items-center"
                     disabled={isSubmitting}
                   >
                     {isSubmitting ? (
@@ -642,6 +690,8 @@ export default function CourseManagement() {
             </div>
           </div>
         )}
+
+        {/* Students Modal */}
         {studentsModalOpen && (
           <StudentsModal
             isOpen={studentsModalOpen}
@@ -649,6 +699,16 @@ export default function CourseManagement() {
             students={currentStudents}
           />
         )}
+
+        {/* Teachers Modal */}
+        {teachersModalOpen && (
+          <TeachersModal
+            isOpen={teachersModalOpen}
+            onClose={() => setTeachersModalOpen(false)}
+            teachers={currentTeachers}
+          />
+        )}
+
         <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
           Course Management
         </h2>
@@ -690,7 +750,7 @@ export default function CourseManagement() {
           department: ["SOT", "SOM", "SOH"],
           batch: ["SOT25B1", "SOT25B2", "SOM25B1", "SOM25B2"],
         }}
-        nonEditableFields={["id"]}
+        nonEditableFields={["id", "students", "center", "teachers"]}
         hiddenColumns={["id", "teachersFull", "studentsFull"]}
         onEdit={handleUpdateCourse}
         onDelete={handleDeleteCourse}
@@ -701,6 +761,14 @@ export default function CourseManagement() {
               className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
             >
               {item.students} students
+            </button>
+          ),
+          teachers: (item) => (
+            <button
+              onClick={() => openTeachersModal(item.teachersFull)}
+              className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+            >
+              {item.teachers} teachers
             </button>
           ),
         }}

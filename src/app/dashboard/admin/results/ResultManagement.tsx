@@ -421,7 +421,7 @@ export default function ResultManagement() {
 
       <Table
         data={transformedCourses}
-        title="Courses Overview"
+        title="Result Overview"
         filterField="department"
         badgeFields={["department"]}
         selectFields={{

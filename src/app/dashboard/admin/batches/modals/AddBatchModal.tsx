@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import axios, { AxiosError } from "axios";
 import { useRouter } from "next/navigation";
+import { ChevronDown } from "lucide-react";
 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 interface AddBatchModalProps {
@@ -160,24 +161,30 @@ const AddBatchModal: React.FC<AddBatchModalProps> = ({
               />
             </div>
 
-            <div>
+            <div className="relative">
               <label className="block text-sm font-medium text-gray-700 mb-1">
                 Department *
               </label>
-              <select
-                name="depName"
-                value={formData.depName}
-                onChange={handleInputChange}
-                className={`w-full px-3 py-2 border rounded-md ${
-                  formErrors.depName ? "border-red-500" : "border-gray-300"
-                }`}
-                disabled={isSubmitting}
-              >
-                <option value="">Select Department</option>
-                <option value="SOT">School of Technology (SOT)</option>
-                <option value="SOM">School of Management (SOM)</option>
-                <option value="SOH">School of Humanities (SOH)</option>
-              </select>
+              <div className="relative">
+                <select
+                  name="depName"
+                  value={formData.depName}
+                  onChange={handleInputChange}
+                  className={`w-full pl-2 pr-10 py-2 border rounded-md bg-white focus:outline-none focus:ring-2 focus:ring-[#1B3A6A] focus:border-[#1B3A6A] appearance-none cursor-pointer ${
+                    formErrors.depName ? "border-red-500" : "border-gray-300"
+                  }`}
+                  disabled={isSubmitting}
+                >
+                  <option value="">Select Department</option>
+                  <option value="SOT">School of Technology (SOT)</option>
+                  <option value="SOM">School of Management (SOM)</option>
+                  <option value="SOH">School of Humanities (SOH)</option>
+                </select>
+                <ChevronDown
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 pointer-events-none"
+                  size={18}
+                />
+              </div>
               {formErrors.depName && (
                 <p className="mt-1 text-sm text-red-600">
                   {formErrors.depName}

@@ -9,16 +9,28 @@ import {
   AlertCircle,
   Download,
   X,
+  Loader2,
 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import SchemaHelpModal from "../Modals/SchemaHelpModal";
+const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-export default function UploadSection() {
+interface UploadSectionProps {
+  onSuccess?: () => void;
+  uploadUrl?: string;
+}
+
+export default function UploadSection({
+  onSuccess,
+  uploadUrl = `${backendUrl}/api/marks/upload-marks`,
+}: UploadSectionProps) {
   const [dragActive, setDragActive] = useState(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
-  const [uploadStatus, setUploadStatus] = useState<"success" | "error" | null>(
-    null
-  );
+  const [uploadStatus, setUploadStatus] = useState<
+    "idle" | "uploading" | "success" | "error" | "404error"
+  >("idle");
+  const [errorMessage, setErrorMessage] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
   const [showSchemaHelp, setShowSchemaHelp] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [tokenPresent, setTokenPresent] = useState(false);
@@ -31,6 +43,26 @@ export default function UploadSection() {
       router.push("/auth/login/student");
     }
   }, [router]);
+
+  useEffect(() => {
+    if (uploadStatus === "success") {
+      const timer = setTimeout(() => {
+        resetToInitialState();
+      }, 1500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [uploadStatus]);
+
+  const resetToInitialState = () => {
+    setUploadedFile(null);
+    setUploadStatus("idle");
+    setErrorMessage("");
+    setSuccessMessage("");
+    if (fileInputRef.current) {
+      fileInputRef.current.value = "";
+    }
+  };
 
   const handleDrag = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -76,27 +108,96 @@ export default function UploadSection() {
 
       if (!isValidType) {
         setUploadStatus("error");
+        setErrorMessage("Please upload only XLS or XLSX files");
+        setUploadedFile(null);
+        return;
+      }
+
+      // Check file size (10MB limit)
+      const fileSizeLimit = 10 * 1024 * 1024; // 10MB
+      if (file.size > fileSizeLimit) {
+        setUploadStatus("error");
+        setErrorMessage("File size exceeds 10MB limit");
         setUploadedFile(null);
         return;
       }
 
       setUploadedFile(file);
-      setUploadStatus("success");
+      setUploadStatus("idle");
+      setErrorMessage("");
+      setSuccessMessage("");
     }
   };
 
   const removeFile = () => {
-    setUploadedFile(null);
-    setUploadStatus(null);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = "";
+    resetToInitialState();
+  };
+
+  const uploadFile = async () => {
+    if (!uploadedFile) return;
+
+    setUploadStatus("uploading");
+    setErrorMessage("");
+    setSuccessMessage("");
+
+    try {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        throw new Error("Authentication required. Please log in again.");
+      }
+
+      const formData = new FormData();
+      formData.append("file", uploadedFile);
+
+      const response = await fetch(uploadUrl, {
+        method: "POST",
+        headers: {
+          token: token,
+        },
+        body: formData,
+      });
+
+      // Handle 404 error specifically
+      if (response.status === 404) {
+        setUploadStatus("404error");
+        setErrorMessage(
+          "The data you are pushing might not be in correct schema format"
+        );
+        return;
+      }
+
+      const result = await response.json();
+
+      if (response.ok && result.success) {
+        setUploadStatus("success");
+        setSuccessMessage(result.message || "Data uploaded successfully!");
+
+        if (onSuccess) {
+          onSuccess();
+        }
+
+        // Note: The useEffect will automatically reset after 3 seconds
+      } else {
+        throw new Error(result.message || "Failed to upload data");
+      }
+    } catch (error: any) {
+      // Check if it's a network error that might indicate 404
+      if (error.message.includes("fetch")) {
+        setUploadStatus("404error");
+        setErrorMessage(
+          "Unable to reach the upload service. Please try again or contact support."
+        );
+      } else {
+        setUploadStatus("error");
+        setErrorMessage(error.message || "An error occurred during upload");
+      }
     }
   };
 
   const downloadSampleFile = () => {
     const link = document.createElement("a");
     link.href =
-      "https://glqns72ea6.ufs.sh/f/35ZKzNsv5By61oPdNSQHWyStvbcNAs0uUq6hILf7wZlnmxj8";
+      "https://docs.google.com/spreadsheets/d/1-kaoMTKx_fc0pMoaIIyHlhlbH4u5yejbaVQHseO1ETo/export?format=xlsx";
     link.download = "sample_test_data.xlsx";
     document.body.appendChild(link);
     link.click();
@@ -129,7 +230,7 @@ export default function UploadSection() {
           className={`relative border-2 border-dashed rounded-xl p-6 sm:p-8 lg:p-12 text-center transition-all duration-200 ${
             dragActive
               ? "border-blue-500 bg-blue-50"
-              : uploadStatus === "error"
+              : uploadStatus === "error" || uploadStatus === "404error"
               ? "border-red-300 bg-red-50"
               : uploadStatus === "success"
               ? "border-green-300 bg-green-50"
@@ -148,7 +249,33 @@ export default function UploadSection() {
             className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
           />
 
-          {uploadedFile ? (
+          {uploadStatus === "success" ? (
+            <div className="space-y-4">
+              <div className="flex items-center justify-center">
+                <CheckCircle className="text-green-500" size={40} />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-green-700 mb-2">
+                  Upload Successful!
+                </h3>
+                <p className="text-sm sm:text-base text-gray-600 mb-4">
+                  {successMessage}
+                </p>
+              </div>
+            </div>
+          ) : uploadStatus === "uploading" ? (
+            <div className="space-y-4">
+              <div className="flex items-center justify-center">
+                <Loader2 className="text-[#1B3A6A] animate-spin" size={40} />
+              </div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">
+                Uploading Data...
+              </h3>
+              <p className="text-sm sm:text-base text-gray-600">
+                Please wait while we process your file
+              </p>
+            </div>
+          ) : uploadedFile && uploadStatus === "idle" ? (
             <div className="space-y-4">
               <div className="flex items-center justify-center">
                 <CheckCircle className="text-green-500" size={40} />
@@ -168,35 +295,45 @@ export default function UploadSection() {
                     ({(uploadedFile.size / 1024 / 1024).toFixed(2)} MB)
                   </span>
                 </div>
-                <div className="flex justify-center">
+                <div className="flex flex-col sm:flex-row justify-center gap-3">
                   <button
                     onClick={removeFile}
-                    className="flex items-center gap-2 px-4 py-2 text-white rounded-lg hover:bg-[#486AA0] cursor-pointer transition-colors z-10 bg-[#1B3A6A] duration-200 ease-in-out"
+                    className="flex items-center justify-center gap-2 px-4 py-2 text-[#1B3A6A] border border-[#1B3A6A] rounded-lg hover:bg-gray-100 transition-colors z-10"
                   >
                     <X size={16} />
                     Remove
                   </button>
+                  <button
+                    onClick={uploadFile}
+                    className="px-6 py-2 bg-[#1B3A6A] text-white rounded-lg hover:bg-[#486AA0] transition-colors font-medium z-10"
+                  >
+                    Upload Data
+                  </button>
                 </div>
               </div>
             </div>
-          ) : uploadStatus === "error" ? (
+          ) : uploadStatus === "error" || uploadStatus === "404error" ? (
             <div className="space-y-4">
               <div className="flex items-center justify-center">
                 <AlertCircle className="text-red-500" size={40} />
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-red-700 mb-2">
-                  Invalid File Type
+                  {uploadStatus === "404error"
+                    ? "Please Upload Data in Correct Schema"
+                    : "Upload Failed"}
                 </h3>
-                <p className="text-red-600 mb-4 text-sm sm:text-base">
-                  Please upload only XLS or XLSX files
+                <p className="text-red-600 mb-4 text-sm sm:text-base break-words">
+                  {errorMessage}
                 </p>
-                <button
-                  onClick={() => setUploadStatus(null)}
-                  className="px-4 py-2 text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors"
-                >
-                  Try Again
-                </button>
+                <div className="flex flex-col sm:flex-row justify-center gap-3">
+                  <button
+                    onClick={resetToInitialState}
+                    className="px-4 py-2 text-red-600 border border-red-300 rounded-lg hover:bg-red-50 transition-colors z-10 cursor-pointer"
+                  >
+                    Try Again
+                  </button>
+                </div>
               </div>
             </div>
           ) : (

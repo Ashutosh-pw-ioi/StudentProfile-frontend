@@ -16,6 +16,7 @@ interface Student {
   name: string;
   email: string;
   enrollmentNumber: string;
+  batchId:string;
 }
 
 interface Teacher {
@@ -175,6 +176,8 @@ export default function BatchManagement() {
       }
 
       const data = response.data;
+      console.log(response.data);
+      
       const allBatches: Batch[] = [];
 
       data.data.departments.forEach((department) => {
@@ -188,8 +191,11 @@ export default function BatchManagement() {
       });
 
       setBatchesFull(allBatches);
+      console.log(allBatches);
+      
 
-      const transformedData: TableBatch[] = allBatches.map((batch) => ({
+      const transformedData: TableBatch[] = allBatches.map((batch) => (
+        {
         id: batch.batchId,
         name: batch.batchName,
         department: batch.departmentName || "",
@@ -235,6 +241,8 @@ export default function BatchManagement() {
 
   const handleUpdateBatch = (updatedItem: any) => {
     const batchItem = updatedItem as TableBatch;
+    console.log(batchItem);
+    
 
     const updateBatch = async () => {
       try {
@@ -243,11 +251,16 @@ export default function BatchManagement() {
           router.push("/auth/login/admin");
           return;
         }
+        console.log(batchItem);
+        
 
         const updateData = {
           batchId: batchItem.id,
           batchName: batchItem.name,
         };
+
+        console.log(updateData);
+        
 
         const response = await axios.put(
           `${backendUrl}/api/batch/update`,

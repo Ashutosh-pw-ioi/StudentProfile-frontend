@@ -132,7 +132,7 @@ export default function UploadSection({
       const formData = new FormData();
       formData.append("file", uploadedFile);
 
-      const response = await fetch(uploadUrl, {
+      const response = await fetch(`${uploadUrl}`, {
         method: "POST",
         headers: {
           token: token,
