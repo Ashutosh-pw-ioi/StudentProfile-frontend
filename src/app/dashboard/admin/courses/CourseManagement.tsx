@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import Shimmer from "../Shimmer";
 import StudentsModal from "./StudentsModal";
+import TeachersModal from "./TeacherModals"; // Add this import
 const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
 
 interface Student {
@@ -87,7 +88,9 @@ export default function CourseManagement() {
   const router = useRouter();
   const [refreshTrigger, setRefreshTrigger] = useState(0);
   const [studentsModalOpen, setStudentsModalOpen] = useState(false);
+  const [teachersModalOpen, setTeachersModalOpen] = useState(false); // Add this state
   const [currentStudents, setCurrentStudents] = useState<Student[]>([]);
+  const [currentTeachers, setCurrentTeachers] = useState<Teacher[]>([]); // Add this state
   const [isAddCourseModalOpen, setIsAddCourseModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     centerName: "",
@@ -131,7 +134,7 @@ export default function CourseManagement() {
     try {
       const token = localStorage.getItem("authToken");
       const response = await axios.post<{ success: boolean; data: AdminData }>(
-        `${process.env.backendUrl}/api/admin/get`,
+        `${backendUrl}/api/admin/get`,
         { id: adminId },
         {
           headers: { token },
@@ -167,7 +170,7 @@ export default function CourseManagement() {
       }
 
       const response = await axios.get<CourseData>(
-        `${process.env.backendUrl}/api/course/all`,
+        `${backendUrl}/api/course/all`,
         { headers: { token } }
       );
 
@@ -196,7 +199,7 @@ export default function CourseManagement() {
         batch: course.batchName,
         department: course.depName,
         center: course.centerName,
-        teachers: course.teachers.map((t) => t.name).join(", "),
+        teachers: course.teachers.length.toString(), // Changed to show count only
         students: course.students.length,
         teachersFull: course.teachers,
         studentsFull: course.students,
@@ -248,7 +251,7 @@ export default function CourseManagement() {
         center: updatedItem.center,
       };
 
-      await axios.put(`${process.env.backendUrl}/api/course/update`, updateData, {
+      await axios.put(`${backendUrl}/api/course/update`, updateData, {
         headers: { token },
       });
 
@@ -304,6 +307,12 @@ export default function CourseManagement() {
   const openStudentsModal = (students: Student[]) => {
     setCurrentStudents(students);
     setStudentsModalOpen(true);
+  };
+
+  // Add this function for teachers modal
+  const openTeachersModal = (teachers: Teacher[]) => {
+    setCurrentTeachers(teachers);
+    setTeachersModalOpen(true);
   };
 
   const handleInputChange = (
@@ -642,6 +651,8 @@ export default function CourseManagement() {
             </div>
           </div>
         )}
+
+        {/* Students Modal */}
         {studentsModalOpen && (
           <StudentsModal
             isOpen={studentsModalOpen}
@@ -649,6 +660,16 @@ export default function CourseManagement() {
             students={currentStudents}
           />
         )}
+
+        {/* Teachers Modal */}
+        {teachersModalOpen && (
+          <TeachersModal
+            isOpen={teachersModalOpen}
+            onClose={() => setTeachersModalOpen(false)}
+            teachers={currentTeachers}
+          />
+        )}
+
         <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-2">
           Course Management
         </h2>
@@ -701,6 +722,14 @@ export default function CourseManagement() {
               className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
             >
               {item.students} students
+            </button>
+          ),
+          teachers: (item) => (
+            <button
+              onClick={() => openTeachersModal(item.teachersFull)}
+              className="text-blue-600 hover:text-blue-800 hover:underline cursor-pointer"
+            >
+              {item.teachers} teachers
             </button>
           ),
         }}
