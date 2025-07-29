@@ -85,7 +85,7 @@ export default function ResetPasswordPage() {
           Reset Your Password
         </h2>
         <p className="text-center text-gray-500 mb-6 text-sm px-10">
-          Enter your new password below. Make sure it's strong and unique!
+          Enter your new password below. Make sure it&lsquo;s strong and unique!
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
