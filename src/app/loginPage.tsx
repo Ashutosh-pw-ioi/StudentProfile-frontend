@@ -5,7 +5,17 @@ import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import { Eye, EyeOff, MailCheck } from "lucide-react";
 
+interface LoginResponse {
+  token: string;
+  user: {
+    id: string;
+    email: string;
+    role: string;
+    firstLoggedIn: boolean;
+  };
+}
 
 interface LoginPageProps {
   role: "student" | "admin" | "teacher";
@@ -14,15 +24,6 @@ interface LoginPageProps {
   primaryColor?: string;
   hoverColor?: string;
   focusColor?: string;
-}
-
-interface LoginResponse {
-  token: string;
-  user: {
-    id: string;
-    email: string;
-    role: string;
-  };
 }
 
 interface ApiError {
@@ -60,9 +61,22 @@ export default function LoginPage({
   const [isLoading, setIsLoading] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [showForgotModal, setShowForgotModal] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [isSendingLink, setIsSendingLink] = useState(false);
+  const [forgotEmailSent, setForgotEmailSent] = useState(false);
+  const [isFirstTimeLogin, setIsFirstTimeLogin] = useState(false);
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [userIdForPasswordReset, setUserIdForPasswordReset] = useState("");
+  const [userTokenForPasswordReset, setUserTokenForPasswordReset] =
+    useState("");
+  const [isResettingPassword, setIsResettingPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+
   const router = useRouter();
   const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL;
-  
 
   const config = roleConfig[role];
 
@@ -116,6 +130,15 @@ export default function LoginPage({
       );
 
       const { token, user } = response.data;
+
+      // Check if this is first time login
+      if (!user.firstLoggedIn) {
+        setIsFirstTimeLogin(true);
+        setUserIdForPasswordReset(user.id);
+        setUserTokenForPasswordReset(token);
+        setIsLoading(false); // Important: Set loading to false so modal can show
+        return;
+      }
 
       if (isClient && typeof window !== "undefined") {
         localStorage.setItem("authToken", token);
@@ -185,12 +208,246 @@ export default function LoginPage({
     }
   };
 
+  const handlePasswordReset = async () => {
+    if (newPassword.length < 6) {
+      toast.error("Password must be at least 6 characters.");
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error("Passwords do not match.");
+      return;
+    }
+
+    setIsResettingPassword(true);
+    try {
+      const res = await axios.post(
+        `${backendUrl}/api/auth/first-reset-password/${userIdForPasswordReset}/${userTokenForPasswordReset}`,
+        {
+          password: newPassword,
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      toast.success("Password updated successfully!");
+
+      // After successful password set, do full login
+      const loginRes = await axios.post<LoginResponse>(
+        `${backendUrl}/api/auth/login`,
+        {
+          email: email.trim(),
+          password: newPassword,
+          role: config.apiRole,
+        }
+      );
+
+      const { token: newToken, user: newUser } = loginRes.data;
+
+      if (isClient && typeof window !== "undefined") {
+        localStorage.setItem("authToken", newToken);
+        localStorage.setItem("user", JSON.stringify(newUser));
+      }
+
+      router.push(`/dashboard/${role}`);
+    } catch (err) {
+      console.error("Password reset error:", err);
+      toast.error("Failed to set password. Please try again.");
+    } finally {
+      setIsResettingPassword(false);
+      setIsFirstTimeLogin(false);
+      // Reset form fields
+      setNewPassword("");
+      setConfirmPassword("");
+      setUserIdForPasswordReset("");
+      setUserTokenForPasswordReset("");
+    }
+  };
+
+  const handleCancelPasswordReset = () => {
+    setIsFirstTimeLogin(false);
+    setNewPassword("");
+    setConfirmPassword("");
+    setUserIdForPasswordReset("");
+    setUserTokenForPasswordReset("");
+  };
+
   return (
     <div
       className="min-h-screen flex items-center justify-center p-4"
       style={{ backgroundColor: bgColor }}
     >
-      {/* Toast Container with better configuration */}
+      {isFirstTimeLogin && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-lg z-50 flex items-center justify-center p-4 shadow-2xl">
+          <div className="bg-white p-6 rounded-lg shadow-xl w-[90%] max-w-md">
+            <h2 className="text-xl font-semibold mb-4 text-gray-800">
+              Set New Password
+            </h2>
+            <p className="text-sm text-gray-600 mb-4">
+              This is your first time logging in. Please set a new password to
+              continue.
+            </p>
+
+            <div className="space-y-4">
+              <div className="relative">
+                <input
+                  type={showNewPassword ? "text" : "password"}
+                  placeholder="New Password (min 6 characters)"
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#486AA0] pr-10"
+                  minLength={6}
+                />
+                <div
+                  onClick={() => setShowNewPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-3 flex items-center cursor-pointer text-gray-500"
+                >
+                  {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </div>
+              </div>
+
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Confirm Password"
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#486AA0] pr-10"
+                  minLength={6}
+                />
+                <div
+                  onClick={() => setShowConfirmPassword((prev) => !prev)}
+                  className="absolute inset-y-0 right-3 flex items-center cursor-pointer text-gray-500"
+                >
+                  {showConfirmPassword ? (
+                    <EyeOff size={18} />
+                  ) : (
+                    <Eye size={18} />
+                  )}
+                </div>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 mt-6">
+              <button
+                onClick={handleCancelPasswordReset}
+                disabled={isResettingPassword}
+                className="text-sm px-4 py-2 bg-gray-200 hover:bg-gray-300 rounded-md disabled:opacity-50 cursor-pointer"
+              >
+                Cancel
+              </button>
+
+              <button
+                onClick={handlePasswordReset}
+                disabled={
+                  isResettingPassword || !newPassword || !confirmPassword
+                }
+                className="text-sm px-4 py-2 bg-[#1B3A6A] text-white hover:bg-[#486AA0] rounded-md disabled:opacity-50 cursor-pointer"
+              >
+                {isResettingPassword ? "Setting Password..." : "Set Password"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Forgot Password Modal */}
+      {showForgotModal && (
+        <div className="fixed inset-0 bg-black/25 backdrop-blur-2xl z-50 flex items-center justify-center p-4">
+          <div className="bg-white p-6 rounded-lg w-[90%] max-w-md shadow-2xl transition-all">
+            {!forgotEmailSent ? (
+              <>
+                <h2 className="text-lg font-semibold mb-4 text-gray-800">
+                  Reset Password
+                </h2>
+                <p className="text-sm text-gray-600 mb-4">
+                  Enter your registered email and we'll send you a verification
+                  link.
+                </p>
+
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  value={forgotEmail}
+                  onChange={(e) => setForgotEmail(e.target.value)}
+                  className="w-full mb-4 px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-[#486AA0]"
+                />
+
+                <div className="flex justify-end space-x-2">
+                  <button
+                    onClick={() => {
+                      setShowForgotModal(false);
+                      setForgotEmail("");
+                      setForgotEmailSent(false);
+                    }}
+                    className="text-sm px-4 py-2 rounded-md bg-gray-200 hover:bg-gray-300 cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={async () => {
+                      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                      if (!emailRegex.test(forgotEmail.trim())) {
+                        toast.error("Please enter a valid email address.");
+                        return;
+                      }
+
+                      setIsSendingLink(true);
+                      try {
+                        const res = await axios.post(
+                          `${backendUrl}/api/auth/forget-password`,
+                          { email: forgotEmail.trim(), role: config.apiRole }
+                        );
+
+                        toast.success("Verification link sent to your email.");
+                        setForgotEmailSent(true);
+                      } catch (err) {
+                        toast.error(
+                          "Unable to send reset link. Try again later."
+                        );
+                      } finally {
+                        setIsSendingLink(false);
+                      }
+                    }}
+                    disabled={isSendingLink}
+                    className="text-sm px-4 py-2 rounded-md bg-[#486AA0] text-white hover:bg-[#1B3A6A] disabled:opacity-50 cursor-pointer"
+                  >
+                    {isSendingLink ? "Sending..." : "Send Link"}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <div className="flex flex-col items-center px-10">
+                <MailCheck className="w-10 h-10 mb-2 text-[#1B3A6A]" />
+                <h2 className="text-lg font-semibold mb-1 text-green-700">
+                  Email Sent Successfully
+                </h2>
+                <p className="text-sm text-gray-700 mb-4 text-center">
+                  A password reset link has been sent to{" "}
+                  <span className="font-medium text-black">{forgotEmail}</span>.
+                  Please check your inbox (and spam folder).
+                </p>
+                <div className="flex justify-end">
+                  <button
+                    onClick={() => {
+                      setShowForgotModal(false);
+                      setForgotEmail("");
+                      setForgotEmailSent(false);
+                    }}
+                    className="text-sm px-4 py-2 rounded-md bg-[#486AA0] text-white hover:bg-[#1B3A6A] cursor-pointer"
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Toast Container */}
       <ToastContainer
         position="top-right"
         autoClose={4000}
@@ -229,7 +486,7 @@ export default function LoginPage({
               />
             </div>
 
-            <div>
+            <div className="mb-10">
               <label className="block text-sm font-semibold text-gray-700 mb-2">
                 Password
               </label>
@@ -288,6 +545,12 @@ export default function LoginPage({
                     </svg>
                   )}
                 </button>
+                <div
+                  className="text-xs hover:underline duration-50 ease-in-out right-0 mt-2 cursor-pointer absolute"
+                  onClick={() => setShowForgotModal(true)}
+                >
+                  Forget Password?
+                </div>
               </div>
             </div>
 

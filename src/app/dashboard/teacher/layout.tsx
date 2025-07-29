@@ -92,6 +92,7 @@ const TeacherLayout = ({ children }: { children: React.ReactNode }) => {
 
   const handleLogout = () => {
     console.log("Logout clicked");
+    localStorage.setItem("user", "");
     router.push("/auth/login/teacher");
   };
   if (!tokenPresent) {
