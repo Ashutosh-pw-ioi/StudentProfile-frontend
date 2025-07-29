@@ -98,6 +98,7 @@ const AdminLayout = ({ children }: { children: React.ReactNode }) => {
 
   const handleLogout = () => {
     console.log("Logout clicked");
+    localStorage.setItem("user", "");
     router.push("/auth/login/admin");
   };
 
