@@ -23,12 +23,6 @@ import { useRouter } from "next/navigation";
 import axios from "axios";
 import { academicData } from "../constants/AcadsData";
 import {
-  getSemesterPerformance,
-  getBatchTopStudents,
-  getDepartmentTopStudents,
-  getAllStudents,
-  getRankIcon,
-  getRankColor,
   getSemesterFromCode,
   getOngoingCourses,
   getUniqueSemesters,
@@ -60,8 +54,6 @@ export default function AcademicsSection() {
   const router = useRouter();
 
   const [apiAcademicsData, setApiAcademicsData] = useState<any>(null);
-  const [batchLeaderboard, setBatchLeaderboard] = useState<any>(null);
-  const [departmentLeaderboard, setDepartmentLeaderboard] = useState<any>(null);
   const [studentProfile, setStudentProfile] = useState<any>(null);
 
   const [selectedSemester, setSelectedSemester] = useState<number>(2);
@@ -97,21 +89,9 @@ export default function AcademicsSection() {
       );
       setStudentProfile(profileRes.data.data);
 
-      const [academicsRes, batchRes, deptRes] = await Promise.all([
+      const [academicsRes] = await Promise.all([
         axios.get<ApiResponse>(
           `${backendUrl}/api/student/get-student-academics`,
-          {
-            headers: { token: token },
-          }
-        ),
-        axios.get<ApiResponse>(
-          `${backendUrl}/api/student/get-batch-leaderboard`,
-          {
-            headers: { token: token },
-          }
-        ),
-        axios.get<ApiResponse>(
-          `${backendUrl}/api/student/get-department-leaderboard`,
           {
             headers: { token: token },
           }
@@ -119,8 +99,6 @@ export default function AcademicsSection() {
       ]);
 
       setApiAcademicsData(academicsRes.data.data);
-      setBatchLeaderboard(batchRes.data.data);
-      setDepartmentLeaderboard(deptRes.data.data);
     } catch (err) {
       if (axios.isAxiosError(err) && err.response?.status === 401) {
         localStorage.removeItem("authToken");
@@ -380,12 +358,7 @@ export default function AcademicsSection() {
     );
   }
 
-  if (
-    !apiAcademicsData ||
-    !batchLeaderboard ||
-    !departmentLeaderboard ||
-    !studentProfile
-  ) {
+  if (!apiAcademicsData || !studentProfile) {
     return <AcademicsShimmer />;
   }
 
